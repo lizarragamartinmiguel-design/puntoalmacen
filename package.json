@@ -1,0 +1,30 @@
+{
+  "name": "puntoalmacen-back4app",
+  "version": "2.0.0",
+  "description": "PuntoAlmacen con Back4App + Netlify",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx serve -s . -l 8080",
+    "build": "echo 'Static site - no build needed'",
+    "dev": "npx serve -s . -l 3000",
+    "netlify-dev": "npx serve -s . -l 8888"
+  },
+  "keywords": [
+    "tienda",
+    "whatsapp",
+    "back4app",
+    "netlify",
+    "ecommerce"
+  ],
+  "author": "PuntoAlmacen",
+  "license": "MIT",
+  "dependencies": {
+    "parse": "^4.2.0"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,0 +1,1348 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Panel de Administración - PuntoAlmacen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* Estilos generales */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    /* Pantalla de Login */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #25D366, #128C7E);
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .login-logo h2 {
+      color: #25D366;
+      margin-bottom: 5px;
+    }
+
+    .login-form .form-group {
+      margin-bottom: 20px;
+    }
+
+    .login-form label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: #25D366;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .login-btn:hover {
+      background: #128C7E;
+    }
+
+    .login-error {
+      color: #dc3545;
+      margin-top: 10px;
+      text-align: center;
+      display: none;
+    }
+
+    /* Panel de Administración */
+    .admin-container {
+      display: flex;
+      min-height: 100vh;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 250px;
+      background: #2c3e50;
+      color: white;
+      padding: 20px 0;
+    }
+
+    .logo-admin {
+      text-align: center;
+      padding: 20px;
+      border-bottom: 1px solid #34495e;
+    }
+
+    .logo-admin img {
+      max-width: 150px;
+    }
+
+    .nav-admin {
+      list-style: none;
+      margin-top: 20px;
+    }
+
+    .nav-admin li {
+      padding: 15px 25px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .nav-admin li:hover,
+    .nav-admin li.active {
+      background: #34495e;
+      border-left: 4px solid #25D366;
+    }
+
+    .nav-admin i {
+      margin-right: 10px;
+      width: 20px;
+      text-align: center;
+    }
+
+    /* Contenido principal */
+    .main-content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .header-admin {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 2em;
+      font-weight: bold;
+      color: #25D366;
+    }
+
+    .stat-label {
+      color: #666;
+      margin-top: 5px;
+    }
+
+    /* Tablas */
+    .table-container {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      background: #f8f9fa;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: #f8f9fa;
+    }
+
+    /* Formularios */
+    .form-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      font-size: 14px;
+    }
+
+    textarea {
+      height: 100px;
+      resize: vertical;
+    }
+
+    /* Upload de imágenes */
+    .file-upload {
+      border: 2px dashed #ddd;
+      border-radius: 5px;
+      padding: 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.3s;
+    }
+
+    .file-upload:hover {
+      border-color: #25D366;
+    }
+
+    .file-upload input {
+      display: none;
+    }
+
+    .file-upload-label {
+      display: block;
+      color: #666;
+      cursor: pointer;
+    }
+
+    .file-upload-label i {
+      font-size: 24px;
+      margin-bottom: 10px;
+      display: block;
+    }
+
+    .image-preview {
+      max-width: 200px;
+      max-height: 150px;
+      margin-top: 10px;
+      border-radius: 5px;
+      display: none;
+    }
+
+    .banner-preview {
+      max-width: 100%;
+      max-height: 300px;
+      margin: 20px 0;
+      border-radius: 10px;
+      display: none;
+    }
+
+    .upload-status {
+      margin-top: 10px;
+      font-size: 12px;
+      color: #666;
+    }
+
+    /* Botones */
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s;
+    }
+
+    .btn-primary {
+      background: #25D366;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #128C7E;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-warning {
+      background: #ffc107;
+      color: #212529;
+    }
+
+    .btn-warning:hover {
+      background: #e0a800;
+    }
+
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background: #c82333;
+    }
+
+    .btn-info {
+      background: #17a2b8;
+      color: white;
+    }
+
+    .btn-info:hover {
+      background: #138496;
+    }
+
+    .btn-sm {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+
+    /* Estados */
+    .estado-pendiente {
+      background: #fff3cd;
+      color: #856404;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+    }
+
+    .estado-completado {
+      background: #d1edff;
+      color: #004085;
+      padding: 5px 10px;
+      border-radius: 15px;
+      font-size: 12px;
+    }
+
+    /* Secciones */
+    .section {
+      display: none;
+    }
+
+    .section.active {
+      display: block;
+    }
+
+    /* Banner Oferta y Rifas */
+    .banner-container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+
+    .banner-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    .banner-info {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .admin-container {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        width: 100%;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .banner-actions {
+        flex-direction: column;
+      }
+
+      .header-admin {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Pantalla de Login -->
+  <div id="login-screen" class="login-container">
+    <div class="login-box">
+      <div class="login-logo">
+        <h2>PuntoAlmacen</h2>
+        <p>Panel de Administración</p>
+      </div>
+      <form class="login-form" id="login-form">
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <input type="text" id="username" placeholder="Ingresa tu usuario" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <input type="password" id="password" placeholder="Ingresa tu contraseña" required>
+        </div>
+        <button type="submit" class="login-btn">Iniciar Sesión</button>
+        <div class="login-error" id="login-error">
+          Usuario o contraseña incorrectos
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Panel de Administración -->
+  <div id="admin-panel" class="admin-container" style="display: none;">
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="logo-admin">
+        <h2>PuntoAlmacen</h2>
+        <p>Panel de Administración</p>
+      </div>
+      
+      <ul class="nav-admin">
+        <li class="active" data-section="dashboard">📊 Dashboard</li>
+        <li data-section="productos">🛍️ Productos</li>
+        <li data-section="pedidos">📦 Pedidos</li>
+        <li data-section="banners">🎯 Banners</li>
+        <li data-section="categorias">📁 Categorías</li>
+        <li data-section="configuracion">⚙️ Configuración</li>
+      </ul>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="main-content">
+      <!-- Header -->
+      <div class="header-admin">
+        <h1 id="section-title">Dashboard</h1>
+        <div class="header-actions">
+          <span id="admin-user">Administrador</span>
+          <button class="btn btn-info" onclick="volverATienda()">🏠 Volver a Tienda</button>
+          <button class="btn btn-secondary" onclick="cerrarSesion()">🔒 Cerrar Sesión</button>
+        </div>
+      </div>
+
+      <!-- Sección Dashboard -->
+      <div id="dashboard" class="section active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-number" id="total-ventas">$0</div>
+            <div class="stat-label">Ventas Totales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="total-pedidos">0</div>
+            <div class="stat-label">Pedidos Hoy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="total-productos">0</div>
+            <div class="stat-label">Productos Activos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number" id="pedidos-pendientes">0</div>
+            <div class="stat-label">Pedidos Pendientes</div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <h3 style="padding: 20px 20px 0;">Últimos Pedidos</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-pedidos-recientes">
+              <!-- Los pedidos se cargarán aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección Productos -->
+      <div id="productos" class="section">
+        <div class="form-container">
+          <h3>Agregar Nuevo Producto</h3>
+          <form id="form-producto">
+            <div class="form-group">
+              <label for="producto-nombre">Nombre del Producto</label>
+              <input type="text" id="producto-nombre" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="producto-precio">Precio</label>
+              <input type="number" id="producto-precio" step="0.01" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="producto-categoria">Categoría</label>
+              <select id="producto-categoria" required>
+                <option value="">Seleccionar categoría</option>
+                <option value="almacen">Almacén</option>
+                <option value="indumentaria">Indumentaria</option>
+                <option value="electro">Electro</option>
+                <option value="libreria">Librería</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label>Imagen del Producto</label>
+              <div class="file-upload" id="producto-upload">
+                <input type="file" id="producto-file" accept="image/*">
+                <label for="producto-file" class="file-upload-label">
+                  📸 Hacer clic aquí para subir imagen
+                  <br>
+                  <small>Formatos: JPG, PNG (Recomendado: 400x400px)</small>
+                </label>
+              </div>
+              <img id="producto-preview" class="image-preview" alt="Vista previa del producto">
+              <div class="upload-status" id="producto-status"></div>
+              <input type="hidden" id="producto-imagen-url">
+            </div>
+            
+            <div class="form-group">
+              <label for="producto-descripcion">Descripción</label>
+              <textarea id="producto-descripcion"></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="producto-destacado"> 
+                🏷️ Producto Destacado (aparecerá como oferta)
+              </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">💾 Guardar Producto</button>
+          </form>
+        </div>
+
+        <div class="table-container">
+          <h3>Lista de Productos</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Imagen</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Categoría</th>
+                <th>Destacado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-productos">
+              <!-- Los productos se cargarán aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección Pedidos -->
+      <div id="pedidos" class="section">
+        <div class="table-container">
+          <h3>Gestión de Pedidos</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Productos</th>
+                <th>Total</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-pedidos">
+              <!-- Los pedidos se cargarán aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección Banners -->
+      <div id="banners" class="section">
+        <!-- Gestión de Banner de Oferta -->
+        <div class="banner-container">
+          <h3>🎯 Gestión del Banner de Oferta</h3>
+          <p>Sube una imagen para mostrar en el banner principal de la tienda</p>
+          
+          <div class="file-upload" id="banner-oferta-upload">
+            <input type="file" id="banner-oferta-file" accept="image/*">
+            <label for="banner-oferta-file" class="file-upload-label">
+              📁 Hacer clic aquí para subir imagen del banner de oferta
+              <br>
+              <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x400px)</small>
+            </label>
+          </div>
+          
+          <img id="banner-oferta-preview" class="banner-preview" alt="Vista previa del banner de oferta">
+          
+          <div class="upload-status" id="banner-oferta-status"></div>
+          
+          <div class="banner-actions">
+            <button class="btn btn-primary" onclick="guardarBannerOferta()" id="btn-guardar-banner-oferta" disabled>
+              💾 Guardar Banner Oferta
+            </button>
+            <button class="btn btn-secondary" onclick="restaurarBannerOfertaDefault()">
+              🔄 Restaurar Banner Predeterminado
+            </button>
+          </div>
+          
+          <div class="banner-info">
+            <h4>📝 Banner de Oferta Actual:</h4>
+            <div id="banner-oferta-actual-info">
+              <em>Cargando información del banner actual...</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gestión de Banner de Rifas -->
+        <div class="banner-container">
+          <h3>🎉 Gestión del Banner de Rifas</h3>
+          <p>Sube una imagen para mostrar en el banner de rifas de la tienda</p>
+          
+          <div class="file-upload" id="banner-rifas-upload">
+            <input type="file" id="banner-rifas-file" accept="image/*">
+            <label for="banner-rifas-file" class="file-upload-label">
+              📁 Hacer clic aquí para subir imagen del banner de rifas
+              <br>
+              <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x300px)</small>
+            </label>
+          </div>
+          
+          <img id="banner-rifas-preview" class="banner-preview" alt="Vista previa del banner de rifas">
+          
+          <div class="upload-status" id="banner-rifas-status"></div>
+          
+          <div class="banner-actions">
+            <button class="btn btn-warning" onclick="guardarBannerRifas()" id="btn-guardar-banner-rifas" disabled>
+              💾 Guardar Banner Rifas
+            </button>
+            <button class="btn btn-secondary" onclick="restaurarBannerRifasDefault()">
+              🔄 Restaurar Banner Predeterminado
+            </button>
+            <button class="btn btn-danger" onclick="desactivarBannerRifas()">
+              🚫 Desactivar Banner Rifas
+            </button>
+          </div>
+          
+          <div class="banner-info">
+            <h4>📝 Banner de Rifas Actual:</h4>
+            <div id="banner-rifas-actual-info">
+              <em>Cargando información del banner actual...</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sección Categorías -->
+      <div id="categorias" class="section">
+        <div class="form-container">
+          <h3>Gestión de Categorías</h3>
+          <form id="form-categoria">
+            <div class="form-group">
+              <label for="categoria-nombre">Nombre de la Categoría</label>
+              <input type="text" id="categoria-nombre" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="categoria-descripcion">Descripción</label>
+              <textarea id="categoria-descripcion"></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Agregar Categoría</button>
+          </form>
+        </div>
+
+        <div class="table-container">
+          <h3>Categorías Existentes</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Descripción</th>
+                <th>Productos</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-categorias">
+              <tr>
+                <td>1</td>
+                <td>Almacén</td>
+                <td>Productos de almacén y comida</td>
+                <td>6</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">Editar</button>
+                  <button class="btn btn-sm btn-danger">Eliminar</button>
+                </td>
+              </tr>
+              <tr>
+                <td>2</td>
+                <td>Indumentaria</td>
+                <td>Ropa y accesorios</td>
+                <td>3</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">Editar</button>
+                  <button class="btn btn-sm btn-danger">Eliminar</button>
+                </td>
+              </tr>
+              <tr>
+                <td>3</td>
+                <td>Electro</td>
+                <td>Electrodomésticos y electrónica</td>
+                <td>3</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">Editar</button>
+                  <button class="btn btn-sm btn-danger">Eliminar</button>
+                </td>
+              </tr>
+              <tr>
+                <td>4</td>
+                <td>Librería</td>
+                <td>Material escolar y de oficina</td>
+                <td>3</td>
+                <td>
+                  <button class="btn btn-sm btn-secondary">Editar</button>
+                  <button class="btn btn-sm btn-danger">Eliminar</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sección Configuración -->
+      <div id="configuracion" class="section">
+        <div class="form-container">
+          <h3>Configuración de la Tienda</h3>
+          <form id="form-configuracion">
+            <div class="form-group">
+              <label for="config-nombre">Nombre de la Tienda</label>
+              <input type="text" id="config-nombre" value="PuntoAlmacen" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="config-whatsapp">Número de WhatsApp</label>
+              <input type="text" id="config-whatsapp" value="5493624840349" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="config-direccion">Dirección</label>
+              <input type="text" id="config-direccion" value="Calle Falsa 123, Ciudad" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="config-horarios">Horarios de Atención</label>
+              <input type="text" id="config-horarios" value="L a V 9-18 hs" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="config-mensaje">Mensaje Automático WhatsApp</label>
+              <textarea id="config-mensaje">Hola PuntoAlmacen, quiero hacer un pedido</textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =============================================
+    // SISTEMA DE LOGIN
+    // =============================================
+    
+    // Credenciales de administrador
+    const ADMIN_CREDENTIALS = {
+      username: 'admin',
+      password: 'admin123'
+    };
+
+    // Verificar si el usuario ya está logueado
+    function verificarSesion() {
+      const sesionActiva = localStorage.getItem('sesionActivaPuntoAlmacen');
+      if (sesionActiva === 'true') {
+        mostrarPanelAdmin();
+      }
+    }
+
+    // Manejar el formulario de login
+    document.getElementById('login-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+      
+      if (username === ADMIN_CREDENTIALS.username && password === ADMIN_CREDENTIALS.password) {
+        // Login exitoso
+        localStorage.setItem('sesionActivaPuntoAlmacen', 'true');
+        mostrarPanelAdmin();
+      } else {
+        // Login fallido
+        errorDiv.style.display = 'block';
+        setTimeout(() => {
+          errorDiv.style.display = 'none';
+        }, 3000);
+      }
+    });
+
+    // Mostrar el panel de administración
+    function mostrarPanelAdmin() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'flex';
+      cargarDashboard();
+      cargarProductos();
+      cargarPedidos();
+      inicializarUploads();
+      cargarInfoBannersActuales();
+    }
+
+    // Volver a la página principal de la tienda
+    function volverATienda() {
+      if (confirm('¿Volver a la página principal de la tienda?')) {
+        window.location.href = 'index.html';
+      }
+    }
+
+    // Cerrar sesión
+    function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        localStorage.removeItem('sesionActivaPuntoAlmacen');
+        document.getElementById('admin-panel').style.display = 'none';
+        document.getElementById('login-screen').style.display = 'flex';
+        document.getElementById('login-form').reset();
+      }
+    }
+
+    // =============================================
+    // DATOS DE EJEMPLO
+    // =============================================
+    
+    let productos = JSON.parse(localStorage.getItem('productosPuntoAlmacen')) || [
+      { id: 1, nombre: "Arroz", precio: 450, categoria: "almacen", imagen: "img/productos/arroz.jpg", destacado: true },
+      { id: 2, nombre: "Fideos", precio: 320, categoria: "almacen", imagen: "img/productos/fideos.jpg" },
+      { id: 3, nombre: "Aceite", precio: 780, categoria: "almacen", imagen: "img/productos/aceite.jpg", destacado: true },
+      { id: 4, nombre: "Remera", precio: 2500, categoria: "indumentaria", imagen: "img/productos/remera.jpg" },
+      { id: 5, nombre: "Pantalón", precio: 4500, categoria: "indumentaria", imagen: "img/productos/pantalon.jpg" },
+      { id: 6, nombre: "Buzo", precio: 5200, categoria: "indumentaria", imagen: "img/productos/buzo.jpg" },
+      { id: 7, nombre: "Licuadora", precio: 12500, categoria: "electro", imagen: "img/productos/licuadora.jpg" },
+      { id: 8, nombre: "Tostadora", precio: 6800, categoria: "electro", imagen: "img/productos/tostadora.jpg" },
+      { id: 9, nombre: "Ventilador", precio: 8900, categoria: "electro", imagen: "img/productos/ventilador.jpg" },
+      { id: 10, nombre: "Cuaderno", precio: 350, categoria: "libreria", imagen: "img/productos/cuaderno.jpg" },
+      { id: 11, nombre: "Lápices", precio: 180, categoria: "libreria", imagen: "img/productos/lapices.jpg" },
+      { id: 12, nombre: "Mochila", precio: 4200, categoria: "libreria", imagen: "img/productos/mochila.jpg", destacado: true }
+    ];
+
+    let pedidos = JSON.parse(localStorage.getItem('pedidosPuntoAlmacen')) || [
+      { 
+        id: 1, 
+        cliente: "Juan Pérez", 
+        telefono: "3624123456",
+        productos: [
+          { id: 1, nombre: "Arroz", precio: 450, cantidad: 2 },
+          { id: 3, nombre: "Aceite", precio: 780, cantidad: 1 }
+        ],
+        total: 1680,
+        estado: "pendiente",
+        fecha: "2024-01-15 10:30"
+      },
+      { 
+        id: 2, 
+        cliente: "María González", 
+        telefono: "3624987654",
+        productos: [
+          { id: 10, nombre: "Cuaderno", precio: 350, cantidad: 3 },
+          { id: 11, nombre: "Lápices", precio: 180, cantidad: 2 }
+        ],
+        total: 1410,
+        estado: "completado",
+        fecha: "2024-01-14 15:45"
+      }
+    ];
+
+    // Variables para manejo de imágenes
+    let bannerOfertaFile = null;
+    let bannerRifasFile = null;
+    let productoFile = null;
+
+    // =============================================
+    // NAVEGACIÓN
+    // =============================================
+    
+    // Navegación entre secciones
+    document.querySelectorAll('.nav-admin li').forEach(item => {
+      item.addEventListener('click', function() {
+        // Remover clase active de todos
+        document.querySelectorAll('.nav-admin li').forEach(li => li.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
+        
+        // Agregar clase active al seleccionado
+        this.classList.add('active');
+        const sectionId = this.getAttribute('data-section');
+        document.getElementById(sectionId).classList.add('active');
+        document.getElementById('section-title').textContent = this.textContent.trim();
+      });
+    });
+
+    // =============================================
+    // INICIALIZACIÓN
+    // =============================================
+    
+    // Verificar sesión al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      verificarSesion();
+    });
+
+    // Inicializar sistemas de upload
+    function inicializarUploads() {
+      // Upload de banner oferta
+      document.getElementById('banner-oferta-file').addEventListener('change', function(e) {
+        bannerOfertaFile = e.target.files[0];
+        if (bannerOfertaFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('banner-oferta-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('btn-guardar-banner-oferta').disabled = false;
+            document.getElementById('banner-oferta-status').textContent = `✅ Imagen cargada: ${bannerOfertaFile.name} (${Math.round(bannerOfertaFile.size/1024)} KB)`;
+          };
+          reader.readAsDataURL(bannerOfertaFile);
+        }
+      });
+
+      // Upload de banner rifas
+      document.getElementById('banner-rifas-file').addEventListener('change', function(e) {
+        bannerRifasFile = e.target.files[0];
+        if (bannerRifasFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('banner-rifas-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('btn-guardar-banner-rifas').disabled = false;
+            document.getElementById('banner-rifas-status').textContent = `✅ Imagen cargada: ${bannerRifasFile.name} (${Math.round(bannerRifasFile.size/1024)} KB)`;
+          };
+          reader.readAsDataURL(bannerRifasFile);
+        }
+      });
+
+      // Upload de producto
+      document.getElementById('producto-file').addEventListener('change', function(e) {
+        productoFile = e.target.files[0];
+        if (productoFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('producto-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('producto-status').textContent = `✅ Imagen cargada: ${productoFile.name}`;
+            document.getElementById('producto-imagen-url').value = e.target.result;
+          };
+          reader.readAsDataURL(productoFile);
+        }
+      });
+    }
+
+    // =============================================
+    // GESTIÓN DE BANNER DE OFERTA
+    // =============================================
+
+    function guardarBannerOferta() {
+      if (!bannerOfertaFile) {
+        alert('Por favor, selecciona una imagen primero');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const bannerData = {
+          imagen: e.target.result,
+          nombre: bannerOfertaFile.name,
+          fecha: new Date().toLocaleString('es-AR'),
+          tamaño: bannerOfertaFile.size,
+          tipo: 'oferta'
+        };
+        
+        localStorage.setItem('bannerOfertaPuntoAlmacen', JSON.stringify(bannerData));
+        document.getElementById('banner-oferta-status').textContent = '✅ Banner de oferta guardado correctamente';
+        document.getElementById('btn-guardar-banner-oferta').disabled = true;
+        cargarInfoBannersActuales();
+        
+        alert('🎉 Banner de oferta actualizado correctamente. Se reflejará en la página principal.');
+      };
+      reader.readAsDataURL(bannerOfertaFile);
+    }
+
+    function restaurarBannerOfertaDefault() {
+      localStorage.removeItem('bannerOfertaPuntoAlmacen');
+      document.getElementById('banner-oferta-preview').style.display = 'none';
+      document.getElementById('banner-oferta-status').textContent = '✅ Banner de oferta restaurado al predeterminado';
+      document.getElementById('btn-guardar-banner-oferta').disabled = true;
+      cargarInfoBannersActuales();
+      alert('Banner de oferta restaurado al predeterminado');
+    }
+
+    // =============================================
+    // GESTIÓN DE BANNER DE RIFAS
+    // =============================================
+
+    function guardarBannerRifas() {
+      if (!bannerRifasFile) {
+        alert('Por favor, selecciona una imagen primero');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const bannerData = {
+          imagen: e.target.result,
+          nombre: bannerRifasFile.name,
+          fecha: new Date().toLocaleString('es-AR'),
+          tamaño: bannerRifasFile.size,
+          tipo: 'rifas',
+          activo: true
+        };
+        
+        localStorage.setItem('bannerRifasPuntoAlmacen', JSON.stringify(bannerData));
+        document.getElementById('banner-rifas-status').textContent = '✅ Banner de rifas guardado correctamente';
+        document.getElementById('btn-guardar-banner-rifas').disabled = true;
+        cargarInfoBannersActuales();
+        
+        alert('🎉 Banner de rifas actualizado correctamente. Se reflejará en la página principal.');
+      };
+      reader.readAsDataURL(bannerRifasFile);
+    }
+
+    function restaurarBannerRifasDefault() {
+      // Para rifas, no hay un banner predeterminado, así que lo desactivamos
+      localStorage.removeItem('bannerRifasPuntoAlmacen');
+      document.getElementById('banner-rifas-preview').style.display = 'none';
+      document.getElementById('banner-rifas-status').textContent = '✅ Banner de rifas desactivado';
+      document.getElementById('btn-guardar-banner-rifas').disabled = true;
+      cargarInfoBannersActuales();
+      alert('Banner de rifas desactivado. No se mostrará en la página principal.');
+    }
+
+    function desactivarBannerRifas() {
+      if (confirm('¿Estás seguro de que quieres desactivar el banner de rifas?')) {
+        localStorage.removeItem('bannerRifasPuntoAlmacen');
+        document.getElementById('banner-rifas-preview').style.display = 'none';
+        document.getElementById('banner-rifas-status').textContent = '🚫 Banner de rifas desactivado';
+        document.getElementById('btn-guardar-banner-rifas').disabled = true;
+        cargarInfoBannersActuales();
+        alert('Banner de rifas desactivado correctamente.');
+      }
+    }
+
+    // =============================================
+    // INFORMACIÓN DE BANNERS ACTUALES
+    // =============================================
+
+    function cargarInfoBannersActuales() {
+      // Información del banner de oferta
+      const bannerOfertaInfo = document.getElementById('banner-oferta-actual-info');
+      const bannerOfertaData = JSON.parse(localStorage.getItem('bannerOfertaPuntoAlmacen'));
+      
+      if (bannerOfertaData) {
+        bannerOfertaInfo.innerHTML = `
+          <strong>Banner Personalizado</strong><br>
+          📁 ${bannerOfertaData.nombre}<br>
+          📅 ${bannerOfertaData.fecha}<br>
+          💾 ${Math.round(bannerOfertaData.tamaño/1024)} KB<br>
+          ✅ <strong>Activo en la tienda</strong>
+        `;
+      } else {
+        bannerOfertaInfo.innerHTML = `
+          <strong>Banner Predeterminado</strong><br>
+          🖼️ img/banner-oferta.jpg<br>
+          📅 Usando imagen por defecto<br>
+          ✅ <strong>Activo en la tienda</strong>
+        `;
+      }
+
+      // Información del banner de rifas
+      const bannerRifasInfo = document.getElementById('banner-rifas-actual-info');
+      const bannerRifasData = JSON.parse(localStorage.getItem('bannerRifasPuntoAlmacen'));
+      
+      if (bannerRifasData) {
+        bannerRifasInfo.innerHTML = `
+          <strong>Banner Personalizado</strong><br>
+          📁 ${bannerRifasData.nombre}<br>
+          📅 ${bannerRifasData.fecha}<br>
+          💾 ${Math.round(bannerRifasData.tamaño/1024)} KB<br>
+          🎉 <strong>Banner de Rifas ACTIVO</strong>
+        `;
+      } else {
+        bannerRifasInfo.innerHTML = `
+          <strong>Banner No Configurado</strong><br>
+          🚫 No hay banner de rifas activo<br>
+          ⚠️ <strong>No se mostrará en la tienda</strong>
+        `;
+      }
+    }
+
+    // =============================================
+    // FUNCIONES EXISTENTES DEL PANEL
+    // =============================================
+
+    // Dashboard
+    function cargarDashboard() {
+      const totalVentas = pedidos.reduce((sum, pedido) => sum + pedido.total, 0);
+      const pedidosHoy = pedidos.filter(pedido => 
+        new Date(pedido.fecha).toDateString() === new Date().toDateString()
+      ).length;
+      const pedidosPendientes = pedidos.filter(pedido => pedido.estado === 'pendiente').length;
+
+      document.getElementById('total-ventas').textContent = `$${totalVentas}`;
+      document.getElementById('total-pedidos').textContent = pedidosHoy;
+      document.getElementById('total-productos').textContent = productos.length;
+      document.getElementById('pedidos-pendientes').textContent = pedidosPendientes;
+
+      // Cargar pedidos recientes
+      const tablaPedidos = document.getElementById('tabla-pedidos-recientes');
+      const pedidosRecientes = pedidos.slice(0, 5);
+      
+      tablaPedidos.innerHTML = pedidosRecientes.map(pedido => `
+        <tr>
+          <td>#${pedido.id}</td>
+          <td>${pedido.cliente}</td>
+          <td>$${pedido.total}</td>
+          <td><span class="estado-${pedido.estado}">${pedido.estado}</span></td>
+          <td>${pedido.fecha}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="verPedido(${pedido.id})">Ver</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Gestión de Productos
+    function cargarProductos() {
+      const tablaProductos = document.getElementById('tabla-productos');
+      tablaProductos.innerHTML = productos.map(producto => `
+        <tr>
+          <td>${producto.id}</td>
+          <td>
+            <img src="${producto.imagen}" alt="${producto.nombre}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" 
+                 onerror="this.src='https://via.placeholder.com/50x50/25D366/ffffff?text=IMG'">
+          </td>
+          <td>${producto.nombre}</td>
+          <td>$${producto.precio}</td>
+          <td>${producto.categoria}</td>
+          <td>${producto.destacado ? '⭐' : ''}</td>
+          <td>
+            <button class="btn btn-sm btn-secondary" onclick="editarProducto(${producto.id})">Editar</button>
+            <button class="btn btn-sm btn-danger" onclick="eliminarProducto(${producto.id})">Eliminar</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Formulario de producto
+    document.getElementById('form-producto').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const imagenUrl = document.getElementById('producto-imagen-url').value || 'img/productos/default.jpg';
+      
+      const nuevoProducto = {
+        id: productos.length > 0 ? Math.max(...productos.map(p => p.id)) + 1 : 1,
+        nombre: document.getElementById('producto-nombre').value,
+        precio: parseFloat(document.getElementById('producto-precio').value),
+        categoria: document.getElementById('producto-categoria').value,
+        imagen: imagenUrl,
+        descripcion: document.getElementById('producto-descripcion').value,
+        destacado: document.getElementById('producto-destacado').checked
+      };
+
+      productos.push(nuevoProducto);
+      localStorage.setItem('productosPuntoAlmacen', JSON.stringify(productos));
+      
+      // Resetear formulario
+      this.reset();
+      document.getElementById('producto-preview').style.display = 'none';
+      document.getElementById('producto-status').textContent = '';
+      productoFile = null;
+      
+      cargarProductos();
+      cargarDashboard();
+      
+      alert('✅ Producto agregado correctamente');
+    });
+
+    // Gestión de Pedidos
+    function cargarPedidos() {
+      const tablaPedidos = document.getElementById('tabla-pedidos');
+      tablaPedidos.innerHTML = pedidos.map(pedido => `
+        <tr>
+          <td>#${pedido.id}</td>
+          <td>
+            <strong>${pedido.cliente}</strong><br>
+            <small>${pedido.telefono}</small>
+          </td>
+          <td>
+            ${pedido.productos.map(p => `${p.nombre} x${p.cantidad}`).join('<br>')}
+          </td>
+          <td>$${pedido.total}</td>
+          <td><span class="estado-${pedido.estado}">${pedido.estado}</span></td>
+          <td>${pedido.fecha}</td>
+          <td>
+            <button class="btn btn-sm btn-primary" onclick="cambiarEstadoPedido(${pedido.id}, 'completado')">Completar</button>
+            <button class="btn btn-sm btn-secondary" onclick="verPedido(${pedido.id})">Detalles</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Funciones auxiliares
+    function cambiarEstadoPedido(id, nuevoEstado) {
+      const pedido = pedidos.find(p => p.id === id);
+      if (pedido) {
+        pedido.estado = nuevoEstado;
+        localStorage.setItem('pedidosPuntoAlmacen', JSON.stringify(pedidos));
+        cargarPedidos();
+        cargarDashboard();
+      }
+    }
+
+    function verPedido(id) {
+      const pedido = pedidos.find(p => p.id === id);
+      if (pedido) {
+        alert(`Detalles del Pedido #${pedido.id}\nCliente: ${pedido.cliente}\nTotal: $${pedido.total}\nEstado: ${pedido.estado}`);
+      }
+    }
+
+    function eliminarProducto(id) {
+      if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        productos = productos.filter(p => p.id !== id);
+        localStorage.setItem('productosPuntoAlmacen', JSON.stringify(productos));
+        cargarProductos();
+        cargarDashboard();
+      }
+    }
+
+    function editarProducto(id) {
+      const producto = productos.find(p => p.id === id);
+      if (producto) {
+        document.getElementById('producto-nombre').value = producto.nombre;
+        document.getElementById('producto-precio').value = producto.precio;
+        document.getElementById('producto-categoria').value = producto.categoria;
+        document.getElementById('producto-descripcion').value = producto.descripcion || '';
+        document.getElementById('producto-destacado').checked = producto.destacado || false;
+        
+        // Mostrar imagen actual
+        const preview = document.getElementById('producto-preview');
+        preview.src = producto.imagen;
+        preview.style.display = 'block';
+        document.getElementById('producto-imagen-url').value = producto.imagen;
+        
+        // Cambiar el formulario a modo edición
+        const form = document.getElementById('form-producto');
+        const originalOnSubmit = form.onsubmit;
+        
+        form.onsubmit = function(e) {
+          e.preventDefault();
+          producto.nombre = document.getElementById('producto-nombre').value;
+          producto.precio = parseFloat(document.getElementById('producto-precio').value);
+          producto.categoria = document.getElementById('producto-categoria').value;
+          producto.imagen = document.getElementById('producto-imagen-url').value;
+          producto.descripcion = document.getElementById('producto-descripcion').value;
+          producto.destacado = document.getElementById('producto-destacado').checked;
+          
+          localStorage.setItem('productosPuntoAlmacen', JSON.stringify(productos));
+          form.onsubmit = originalOnSubmit;
+          form.reset();
+          preview.style.display = 'none';
+          cargarProductos();
+          alert('✅ Producto actualizado correctamente');
+        };
+      }
+    }
+
+    // Configuración
+    document.getElementById('form-configuracion').addEventListener('submit', function(e) {
+      e.preventDefault();
+      alert('✅ Configuración guardada correctamente');
+    });
+  </script>
+</body>
+</html>

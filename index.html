@@ -1,0 +1,1356 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>PuntoAlmacen – Tienda por WhatsApp | Comprá fácil desde tu casa</title>
+  <meta name="description" content="Tienda de almacén, indumentaria y electrodomésticos. Hacé tu pedido por WhatsApp y te lo llevamos a domicilio.">
+  <meta name="keywords" content="almacén, tienda, electrodomésticos, indumentaria, compras, WhatsApp, delivery">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    /* ESTILOS GENERALES */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f8f9fa;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* HEADER MEJORADO CON LOGO */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 5%;
+      background: white;
+      box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .logo {
+      height: 50px;
+      width: auto;
+      transition: transform 0.3s ease;
+    }
+
+    .logo:hover {
+      transform: scale(1.05);
+    }
+
+    .logo-text {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #25D366;
+    }
+
+    .logo-subtitle {
+      font-size: 0.9em;
+      color: #666;
+      margin-top: -5px;
+    }
+
+    .btn-wsp-float {
+      background: #25D366;
+      padding: 12px 20px;
+      border-radius: 25px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(37, 211, 102, 0.3);
+    }
+
+    .btn-wsp-float:hover {
+      background: #128C7E;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(37, 211, 102, 0.4);
+    }
+
+    .btn-wsp-float img {
+      width: 24px;
+      height: 24px;
+    }
+
+    /* HERO SECTION */
+    .hero {
+      position: relative;
+      margin: 20px 5%;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+    }
+
+    .hero img {
+      width: 100%;
+      height: 300px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .btn-oferta {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      background: #ff4444;
+      color: white;
+      padding: 12px 25px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .btn-oferta:hover {
+      background: #cc0000;
+      transform: scale(1.05);
+    }
+
+    /* BANNER RIFAS */
+    .banner-rifas {
+      margin: 30px 5%;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .banner-rifas:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+
+    .banner-rifas a {
+      display: block;
+      text-decoration: none;
+    }
+
+    .banner-rifas img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .banner-rifas-content {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.8));
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .banner-rifas h3 {
+      font-size: 1.5em;
+      margin-bottom: 5px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .banner-rifas p {
+      font-size: 1em;
+      opacity: 0.9;
+      margin-bottom: 10px;
+    }
+
+    .btn-rifas {
+      background: #FF6B35;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+      display: inline-block;
+      transition: all 0.3s ease;
+    }
+
+    .btn-rifas:hover {
+      background: #E55A2B;
+      transform: scale(1.05);
+    }
+
+    /* MAIN CONTENT */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .busqueda {
+      width: 100%;
+      padding: 15px;
+      margin: 20px 0;
+      border: 2px solid #e9ecef;
+      border-radius: 10px;
+      font-size: 16px;
+      transition: border-color 0.3s ease;
+    }
+
+    .busqueda:focus {
+      outline: none;
+      border-color: #25D366;
+    }
+
+    .filtros {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 25px 0;
+      flex-wrap: wrap;
+    }
+
+    .btn-filtro {
+      padding: 10px 20px;
+      background: #f8f9fa;
+      border: 2px solid #e9ecef;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+    }
+
+    .btn-filtro.active {
+      background: #25D366;
+      color: white;
+      border-color: #25D366;
+    }
+
+    .btn-filtro:hover:not(.active) {
+      background: #e9ecef;
+    }
+
+    .titulo-seccion {
+      text-align: center;
+      margin: 40px 0 20px 0;
+      color: #2c3e50;
+      font-size: 2em;
+      position: relative;
+    }
+
+    .titulo-seccion::after {
+      content: '';
+      display: block;
+      width: 60px;
+      height: 4px;
+      background: #25D366;
+      margin: 10px auto;
+      border-radius: 2px;
+    }
+
+    .grilla {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .producto-card {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+      border: 1px solid #f1f3f4;
+    }
+
+    .producto-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 30px rgba(0,0,0,0.15);
+    }
+
+    .producto-imagen {
+      position: relative;
+      margin-bottom: 15px;
+    }
+
+    .producto-imagen img {
+      width: 100%;
+      height: 200px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .badge-oferta {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #ff4444;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    .badge-sin-stock {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #6c757d;
+      color: white;
+      padding: 5px 12px;
+      border-radius: 15px;
+      font-size: 0.8em;
+      font-weight: bold;
+    }
+
+    .producto-card h3 {
+      margin: 15px 0 10px 0;
+      color: #2c3e50;
+      font-size: 1.2em;
+    }
+
+    .precio {
+      font-weight: bold;
+      color: #25D366;
+      font-size: 1.4em;
+      margin: 15px 0;
+    }
+
+    .btn-agregar {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: bold;
+      width: 100%;
+    }
+
+    .btn-agregar:hover {
+      background: #128C7E;
+      transform: translateY(-2px);
+    }
+
+    .btn-agregar:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* BOTONES FLOTANTES */
+    .btn-admin {
+      position: fixed;
+      bottom: 150px;
+      right: 25px;
+      background: #6c757d;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 99;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 24px;
+    }
+
+    .btn-admin:hover {
+      transform: scale(1.1);
+      background: #5a6268;
+    }
+
+    .carrito-flotante {
+      position: fixed;
+      bottom: 70px;
+      right: 25px;
+      background: #25D366;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      cursor: pointer;
+      z-index: 99;
+      transition: all 0.3s ease;
+    }
+
+    .carrito-flotante:hover {
+      transform: scale(1.1);
+    }
+
+    .contador-carrito {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #ff4444;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    /* MODAL CARRITO */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-contenido {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 90%;
+      max-height: 80%;
+      overflow-y: auto;
+      width: 500px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-cerrar {
+      float: right;
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #666;
+    }
+
+    .modal-cerrar:hover {
+      color: #333;
+    }
+
+    .producto-carrito {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .producto-info {
+      flex-grow: 1;
+    }
+
+    .producto-cantidad {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-cantidad {
+      background: #f8f9fa;
+      border: 1px solid #ddd;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-cantidad:hover {
+      background: #e9ecef;
+    }
+
+    .btn-enviar-pedido {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      margin-top: 20px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .btn-enviar-pedido:hover {
+      background: #128C7E;
+      transform: translateY(-2px);
+    }
+
+    /* FOOTER */
+    footer {
+      background: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 30px 20px;
+      margin-top: 50px;
+    }
+
+    footer a {
+      color: #25D366;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* NOTIFICACIONES */
+    .notificacion {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #25D366;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      z-index: 1000;
+      animation: fadeInOut 3s ease-in-out;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(-20px); }
+      20% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+
+    /* LOADING Y ESTADOS */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.1em;
+    }
+
+    .sin-productos {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      grid-column: 1 / -1;
+    }
+
+    /* RESPONSIVE */
+    @media (max-width: 768px) {
+      .header {
+        padding: 10px 5%;
+        flex-direction: column;
+        gap: 15px;
+      }
+
+      .logo {
+        height: 40px;
+      }
+
+      .hero img {
+        height: 200px;
+      }
+
+      .banner-rifas img {
+        height: 150px;
+      }
+
+      .banner-rifas-content {
+        padding: 15px;
+      }
+
+      .banner-rifas h3 {
+        font-size: 1.2em;
+      }
+
+      .banner-rifas p {
+        font-size: 0.9em;
+      }
+
+      .grilla {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .btn-admin, .carrito-flotante {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+      }
+
+      .btn-admin {
+        bottom: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER CON LOGO -->
+<header class="header">
+  <div class="logo-container">
+    <img src="img/logo.jpg.jpeg" alt="PuntoAlmacen - Tienda por WhatsApp" class="logo">
+    <div>
+      <div class="logo-text">PuntoAlmacen</div>
+      <div class="logo-subtitle">Tienda por WhatsApp</div>
+    </div>
+  </div>
+  
+  <a class="btn-wsp-float" href="https://wa.me/5493624840349?text=Hola%20PuntoAlmacen,%20quiero%20hacer%20un%20pedido" target="_blank" aria-label="Contactar por WhatsApp">
+    <img src="https://img.icons8.com/color/48/whatsapp.png" alt="WhatsApp"/>
+    Pedir por WhatsApp
+  </a>
+</header>
+
+<!-- BANNER OFERTA - Ahora dinámico -->
+<section class="hero">
+  <img id="banner-oferta" src="img/banner-oferta.jpg" alt="Oferta especial - Descuentos hasta 50%">
+  <a href="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día" class="btn-oferta">Quiero mi oferta</a>
+</section>
+
+<!-- BANNER RIFAS ONLINE - Ahora dinámico -->
+<section class="banner-rifas" id="banner-rifas-container" style="display: none;">
+  <a href="https://rifasapponline.netlify.app/" target="_blank">
+    <img id="banner-rifas-img" src="" alt="Participa en nuestras rifas online">
+    <div class="banner-rifas-content">
+      <h3 id="banner-rifas-titulo">🎉 ¡Participa en Nuestras Rifas! 🎉</h3>
+      <p id="banner-rifas-descripcion">Gana premios increíbles - ¡Es muy fácil participar!</p>
+      <span class="btn-rifas">Ver Rifas Online</span>
+    </div>
+  </a>
+</section>
+
+<!-- SECCIONES -->
+<main class="container">
+  <!-- Barra de búsqueda -->
+  <input type="text" class="busqueda" placeholder="🔍 Buscar productos..." id="busqueda">
+  
+  <!-- Filtros por categoría -->
+  <div class="filtros">
+    <button class="btn-filtro active" data-categoria="todos">Todos los productos</button>
+    <button class="btn-filtro" data-categoria="almacen">Almacén</button>
+    <button class="btn-filtro" data-categoria="indumentaria">Indumentaria</button>
+    <button class="btn-filtro" data-categoria="electro">Electro</button>
+    <button class="btn-filtro" data-categoria="libreria">Librería</button>
+  </div>
+
+  <h2 class="titulo-seccion">Almacén</h2>
+  <div class="grilla" id="almacen">
+    <div class="loading">Cargando productos de almacén...</div>
+  </div>
+
+  <h2 class="titulo-seccion">Indumentaria</h2>
+  <div class="grilla" id="indumentaria">
+    <div class="loading">Cargando indumentaria...</div>
+  </div>
+
+  <h2 class="titulo-seccion">Electro</h2>
+  <div class="grilla" id="electro">
+    <div class="loading">Cargando electrodomésticos...</div>
+  </div>
+
+  <h2 class="titulo-seccion">Librería</h2>
+  <div class="grilla" id="libreria">
+    <div class="loading">Cargando productos de librería...</div>
+  </div>
+
+</main>
+
+<!-- Botón Admin Flotante -->
+<button class="btn-admin" id="btnAdmin" title="Panel de Administración">⚙️</button>
+
+<!-- Carrito flotante -->
+<div class="carrito-flotante" id="carritoBtn">
+  <div class="contador-carrito" id="contadorCarrito">0</div>
+  <img src="https://img.icons8.com/ios-filled/30/ffffff/shopping-cart.png" alt="Carrito de compras">
+</div>
+
+<!-- Modal del carrito -->
+<div class="modal" id="modalCarrito">
+  <div class="modal-contenido">
+    <button class="modal-cerrar" id="cerrarModal">&times;</button>
+    <h2>🛒 Tu Pedido</h2>
+    <div id="listaCarrito">
+      <div class="sin-productos">No hay productos en el carrito</div>
+    </div>
+    <div id="totalCarrito"></div>
+    <button class="btn-enviar-pedido" id="enviarPedido">📤 Enviar pedido por WhatsApp</button>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p id="footer-info">© 2025 PuntoAlmacen – Horarios: Lunes a Viernes 9-18 hs</p>
+  <p id="footer-contacto">📍 Calle Falsa 123, Ciudad – <a href="https://wa.me/5493624840349">WhatsApp: +54 9 3624 840-349</a></p>
+  <p><a href="admin.html" style="color: #ccc; font-size: 12px;">Panel de Administración</a></p>
+</footer>
+
+<script>
+  // =============================================
+  // SISTEMA MEJORADO DE COMPATIBILIDAD CON PANEL ADMIN
+  // =============================================
+
+  // Constantes para claves de localStorage (COMPATIBLES CON ADMIN)
+  const STORAGE_KEYS = {
+    PRODUCTOS: 'productosPuntoAlmacen',
+    CARRITO: 'carritoPuntoAlmacen',
+    BANNER_OFERTA: 'bannerOfertaPuntoAlmacen',
+    BANNER_RIFAS: 'bannerRifasPuntoAlmacen',
+    PEDIDOS: 'pedidosPuntoAlmacen',
+    CONFIG: 'configuracionPuntoAlmacen'
+  };
+
+  // Productos por defecto (solo se usan si no hay datos en localStorage)
+  const PRODUCTOS_POR_DEFECTO = [
+    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "img/productos/arroz.jpg", destacado: true },
+    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "img/productos/fideos.jpg" },
+    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "img/productos/aceite.jpg", destacado: true },
+    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "img/productos/harina.jpg" },
+    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "img/productos/remera.jpg", talles: ["S", "M", "L", "XL"] },
+    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "img/productos/pantalon.jpg", talles: ["38", "40", "42", "44"] },
+    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "img/productos/buzo.jpg", talles: ["S", "M", "L"] },
+    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "img/productos/licuadora.jpg", garantia: "12 meses" },
+    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "img/productos/tostadora.jpg", garantia: "6 meses" },
+    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "img/productos/ventilador.jpg", garantia: "12 meses" },
+    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "img/productos/cuaderno.jpg" },
+    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "img/productos/lapices.jpg" },
+    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "img/productos/mochila.jpg", destacado: true }
+  ];
+
+  // Cargar productos desde localStorage o usar datos por defecto
+  let productos = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS) || PRODUCTOS_POR_DEFECTO;
+
+  // Carrito de compras - cargar desde localStorage
+  let carrito = cargarDesdeLocalStorage(STORAGE_KEYS.CARRITO) || [];
+
+  // Elementos del DOM
+  const elementos = {
+    carritoBtn: document.getElementById('carritoBtn'),
+    modalCarrito: document.getElementById('modalCarrito'),
+    cerrarModal: document.getElementById('cerrarModal'),
+    listaCarrito: document.getElementById('listaCarrito'),
+    totalCarrito: document.getElementById('totalCarrito'),
+    enviarPedido: document.getElementById('enviarPedido'),
+    contadorCarrito: document.getElementById('contadorCarrito'),
+    busqueda: document.getElementById('busqueda'),
+    filtros: document.querySelectorAll('.btn-filtro'),
+    btnAdmin: document.getElementById('btnAdmin'),
+    bannerOferta: document.getElementById('banner-oferta'),
+    bannerRifasContainer: document.getElementById('banner-rifas-container'),
+    bannerRifasImg: document.getElementById('banner-rifas-img'),
+    bannerRifasTitulo: document.getElementById('banner-rifas-titulo'),
+    bannerRifasDescripcion: document.getElementById('banner-rifas-descripcion'),
+    footerInfo: document.getElementById('footer-info'),
+    footerContacto: document.getElementById('footer-contacto')
+  };
+
+  // Inicialización
+  document.addEventListener('DOMContentLoaded', function() {
+    inicializarTienda();
+  });
+
+  // =============================================
+  // FUNCIONES DE INICIALIZACIÓN
+  // =============================================
+
+  function inicializarTienda() {
+    console.log('🛍️ PuntoAlmacen - Sistema inicializado');
+    
+    // Cargar elementos de la tienda
+    cargarBannerOfertaPersonalizado();
+    cargarBannerRifasPersonalizado();
+    cargarConfiguracionTienda();
+    cargarProductos();
+    inicializarEventos();
+    actualizarCarrito();
+    
+    // Sincronización inicial con admin
+    setTimeout(() => {
+      sincronizarConAdmin();
+    }, 500);
+  }
+
+  // =============================================
+  // FUNCIONES MEJORADAS DE COMPATIBILIDAD CON ADMIN
+  // =============================================
+
+  // Función mejorada para cargar desde localStorage
+  function cargarDesdeLocalStorage(clave) {
+    try {
+      const datos = localStorage.getItem(clave);
+      return datos ? JSON.parse(datos) : null;
+    } catch (error) {
+      console.error(`❌ Error al cargar ${clave}:`, error);
+      return null;
+    }
+  }
+
+  // Función mejorada para guardar en localStorage
+  function guardarEnLocalStorage(clave, datos) {
+    try {
+      localStorage.setItem(clave, JSON.stringify(datos));
+      return true;
+    } catch (error) {
+      console.error(`❌ Error al guardar ${clave}:`, error);
+      return false;
+    }
+  }
+
+  // Cargar banner de oferta personalizado desde localStorage
+  function cargarBannerOfertaPersonalizado() {
+    const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_OFERTA);
+    
+    if (bannerData && bannerData.imagen) {
+      elementos.bannerOferta.src = bannerData.imagen;
+      console.log('✅ Banner de oferta personalizado cargado desde admin');
+    } else {
+      console.log('ℹ️ Usando banner de oferta predeterminado');
+    }
+  }
+
+  // Cargar banner de rifas personalizado desde localStorage
+  function cargarBannerRifasPersonalizado() {
+    const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_RIFAS);
+    
+    if (bannerData && bannerData.imagen) {
+      elementos.bannerRifasImg.src = bannerData.imagen;
+      elementos.bannerRifasContainer.style.display = 'block';
+      
+      // Actualizar título y descripción si están en los datos
+      if (bannerData.titulo) {
+        elementos.bannerRifasTitulo.textContent = bannerData.titulo;
+      }
+      if (bannerData.descripcion) {
+        elementos.bannerRifasDescripcion.textContent = bannerData.descripcion;
+      }
+      
+      console.log('✅ Banner de rifas personalizado cargado desde admin');
+    } else {
+      elementos.bannerRifasContainer.style.display = 'none';
+      console.log('ℹ️ Banner de rifas no configurado en admin');
+    }
+  }
+
+  // Cargar configuración de la tienda
+  function cargarConfiguracionTienda() {
+    const config = cargarDesdeLocalStorage(STORAGE_KEYS.CONFIG);
+    
+    if (config) {
+      // Actualizar información de contacto si está configurada
+      if (config.whatsapp) {
+        actualizarContactoWhatsApp(config.whatsapp);
+      }
+      
+      // Actualizar información de la tienda
+      if (config.nombre) {
+        document.querySelector('.logo-text').textContent = config.nombre;
+      }
+      
+      // Actualizar información del footer
+      if (config.horarios) {
+        elementos.footerInfo.textContent = `© 2025 PuntoAlmacen – Horarios: ${config.horarios}`;
+      }
+      
+      if (config.direccion) {
+        elementos.footerContacto.innerHTML = `📍 ${config.direccion} – <a href="https://wa.me/${config.whatsapp}">WhatsApp: ${config.whatsapp}</a>`;
+      }
+      
+      console.log('✅ Configuración de tienda cargada desde admin');
+    }
+  }
+
+  // Actualizar contacto de WhatsApp en toda la tienda
+  function actualizarContactoWhatsApp(telefono) {
+    const enlacesWhatsApp = document.querySelectorAll('a[href*="wa.me"]');
+    
+    enlacesWhatsApp.forEach(enlace => {
+      const hrefActual = enlace.href;
+      const nuevoHref = hrefActual.replace(/wa\.me\/\d+/, `wa.me/${telefono}`);
+      enlace.href = nuevoHref;
+    });
+    
+    // Actualizar también el enlace flotante
+    const btnWspFloat = document.querySelector('.btn-wsp-float');
+    if (btnWspFloat) {
+      btnWspFloat.href = `https://wa.me/${telefono}?text=Hola%20PuntoAlmacen,%20quiero%20hacer%20un%20pedido`;
+    }
+    
+    // Actualizar enlace de oferta
+    const btnOferta = document.querySelector('.btn-oferta');
+    if (btnOferta) {
+      btnOferta.href = `https://wa.me/${telefono}?text=Quiero%20la%20oferta%20del%20día`;
+    }
+  }
+
+  // Sincronizar cambios desde el panel admin
+  function sincronizarConAdmin() {
+    let cambiosDetectados = false;
+
+    // Sincronizar productos
+    const productosAdmin = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS);
+    if (productosAdmin && JSON.stringify(productos) !== JSON.stringify(productosAdmin)) {
+      productos = productosAdmin;
+      cambiosDetectados = true;
+      console.log('✅ Productos sincronizados desde admin');
+    }
+
+    // Sincronizar banner de oferta
+    const bannerOfertaAnterior = elementos.bannerOferta.src;
+    cargarBannerOfertaPersonalizado();
+    if (elementos.bannerOferta.src !== bannerOfertaAnterior) {
+      cambiosDetectados = true;
+    }
+
+    // Sincronizar banner de rifas
+    cargarBannerRifasPersonalizado();
+
+    // Sincronizar configuración
+    cargarConfiguracionTienda();
+
+    // Recargar interfaz si hubo cambios
+    if (cambiosDetectados) {
+      cargarProductos();
+      mostrarNotificacion('🔄 Cambios actualizados desde el panel admin');
+    }
+  }
+
+  // Escuchar cambios en localStorage desde otras pestañas (admin)
+  window.addEventListener('storage', function(e) {
+    console.log('🔄 Cambio detectado en localStorage:', e.key);
+    
+    if (Object.values(STORAGE_KEYS).includes(e.key)) {
+      sincronizarConAdmin();
+    }
+  });
+
+  // =============================================
+  // FUNCIONES PRINCIPALES DE LA TIENDA (MEJORADAS)
+  // =============================================
+
+  // Cargar productos en las secciones (función mejorada)
+  function cargarProductos() {
+    const secciones = {
+      almacen: document.getElementById('almacen'),
+      indumentaria: document.getElementById('indumentaria'),
+      electro: document.getElementById('electro'),
+      libreria: document.getElementById('libreria')
+    };
+
+    // Limpiar secciones
+    Object.values(secciones).forEach(seccion => {
+      if (seccion) seccion.innerHTML = '';
+    });
+
+    // Filtrar productos según búsqueda
+    const terminoBusqueda = elementos.busqueda.value.toLowerCase();
+    let productosFiltrados = productos;
+    
+    if (terminoBusqueda) {
+      productosFiltrados = productos.filter(producto => 
+        producto.nombre.toLowerCase().includes(terminoBusqueda) ||
+        (producto.descripcion && producto.descripcion.toLowerCase().includes(terminoBusqueda))
+      );
+    }
+
+    // Filtrar por categoría activa
+    const categoriaActiva = document.querySelector('.btn-filtro.active')?.dataset.categoria;
+    if (categoriaActiva && categoriaActiva !== 'todos') {
+      productosFiltrados = productosFiltrados.filter(producto => 
+        producto.categoria === categoriaActiva
+      );
+    }
+
+    // Mostrar u ocultar secciones según filtros
+    document.querySelectorAll('.titulo-seccion').forEach(titulo => {
+      titulo.style.display = 'none';
+    });
+    
+    document.querySelectorAll('.grilla').forEach(grilla => {
+      grilla.style.display = 'none';
+    });
+
+    // Contador de productos por categoría
+    const contadorCategorias = {
+      almacen: 0,
+      indumentaria: 0,
+      electro: 0,
+      libreria: 0
+    };
+
+    // Agregar productos a las secciones
+    productosFiltrados.forEach(producto => {
+      const seccion = secciones[producto.categoria];
+      if (seccion) {
+        seccion.style.display = 'grid';
+        seccion.previousElementSibling.style.display = 'block';
+        contadorCategorias[producto.categoria]++;
+        
+        const productoElement = document.createElement('div');
+        productoElement.className = 'producto-card';
+        productoElement.innerHTML = `
+          <div class="producto-imagen">
+            <img src="${producto.imagen}" alt="${producto.nombre}" 
+                 onerror="this.src='https://via.placeholder.com/300x200/25D366/ffffff?text=Producto'">
+            ${producto.destacado ? '<span class="badge-oferta">🔥 OFERTA</span>' : ''}
+            ${producto.stock === 0 ? '<span class="badge-sin-stock">SIN STOCK</span>' : ''}
+          </div>
+          <h3>${producto.nombre}</h3>
+          ${producto.talles ? `<p><small>Talles disponibles: ${producto.talles.join(', ')}</small></p>` : ''}
+          ${producto.garantia ? `<p><small>🛡️ Garantía: ${producto.garantia}</small></p>` : ''}
+          ${producto.descripcion ? `<p><small>${producto.descripcion}</small></p>` : ''}
+          <div class="precio">$${producto.precio}</div>
+          <button class="btn-agregar" data-id="${producto.id}" 
+                  ${producto.stock === 0 ? 'disabled' : ''}>
+            ${producto.stock === 0 ? '❌ Sin stock' : '🛒 Agregar al carrito'}
+          </button>
+        `;
+        seccion.appendChild(productoElement);
+      }
+    });
+
+    // Actualizar títulos con contadores
+    Object.keys(contadorCategorias).forEach(categoria => {
+      const titulo = document.querySelector(`#${categoria}`)?.previousElementSibling;
+      if (titulo && contadorCategorias[categoria] > 0) {
+        const tituloOriginal = titulo.textContent.replace(/\(\d+\)/, '').trim();
+        titulo.textContent = `${tituloOriginal} (${contadorCategorias[categoria]})`;
+      }
+    });
+
+    // Si no hay productos, mostrar mensaje
+    if (productosFiltrados.length === 0) {
+      const mensaje = document.createElement('div');
+      mensaje.className = 'sin-productos';
+      mensaje.innerHTML = `
+        <h3>😔 No se encontraron productos</h3>
+        <p>Intenta con otros términos de búsqueda o cambia de categoría</p>
+        <button class="btn-agregar" onclick="limpiarBusqueda()" style="margin-top: 15px; max-width: 200px;">Limpiar búsqueda</button>
+      `;
+      document.querySelector('.container').appendChild(mensaje);
+    }
+  }
+
+  // Limpiar búsqueda
+  function limpiarBusqueda() {
+    elementos.busqueda.value = '';
+    elementos.filtros.forEach(f => f.classList.remove('active'));
+    const filtroTodos = document.querySelector('.btn-filtro[data-categoria="todos"]');
+    if (filtroTodos) filtroTodos.classList.add('active');
+    cargarProductos();
+  }
+
+  // Inicializar eventos (función mejorada)
+  function inicializarEventos() {
+    // Carrito
+    if (elementos.carritoBtn) {
+      elementos.carritoBtn.addEventListener('click', () => {
+        elementos.modalCarrito.style.display = 'flex';
+      });
+    }
+
+    if (elementos.cerrarModal) {
+      elementos.cerrarModal.addEventListener('click', () => {
+        elementos.modalCarrito.style.display = 'none';
+      });
+    }
+
+    // Cerrar modal al hacer clic fuera
+    if (elementos.modalCarrito) {
+      elementos.modalCarrito.addEventListener('click', (e) => {
+        if (e.target === elementos.modalCarrito) {
+          elementos.modalCarrito.style.display = 'none';
+        }
+      });
+    }
+
+    // Enviar pedido por WhatsApp
+    if (elementos.enviarPedido) {
+      elementos.enviarPedido.addEventListener('click', enviarPedidoWhatsApp);
+    }
+
+    // Búsqueda
+    if (elementos.busqueda) {
+      elementos.busqueda.addEventListener('input', cargarProductos);
+    }
+
+    // Filtros
+    if (elementos.filtros) {
+      elementos.filtros.forEach(filtro => {
+        filtro.addEventListener('click', () => {
+          elementos.filtros.forEach(f => f.classList.remove('active'));
+          filtro.classList.add('active');
+          cargarProductos();
+        });
+      });
+    }
+
+    // Botón Admin
+    if (elementos.btnAdmin) {
+      elementos.btnAdmin.addEventListener('click', () => {
+        window.location.href = 'admin.html';
+      });
+    }
+
+    // Delegación de eventos para botones "Agregar al carrito"
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('btn-agregar') && !e.target.disabled) {
+        const idProducto = parseInt(e.target.dataset.id);
+        agregarAlCarrito(idProducto);
+      }
+    });
+
+    // Sincronización manual con admin (por si acaso)
+    document.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        sincronizarConAdmin();
+        mostrarNotificacion('🔄 Sincronización manual con admin');
+      }
+    });
+
+    // Sincronización automática periódica
+    setInterval(sincronizarConAdmin, 30000); // Cada 30 segundos
+  }
+
+  // Agregar producto al carrito (función mejorada)
+  function agregarAlCarrito(idProducto) {
+    const producto = productos.find(p => p.id === idProducto);
+    if (!producto) return;
+
+    // Verificar stock
+    if (producto.stock !== undefined && producto.stock <= 0) {
+      mostrarNotificacion('❌ Producto sin stock disponible');
+      return;
+    }
+
+    const productoEnCarrito = carrito.find(item => item.id === idProducto);
+    
+    if (productoEnCarrito) {
+      // Verificar que no exceda el stock disponible
+      if (producto.stock !== undefined && productoEnCarrito.cantidad >= producto.stock) {
+        mostrarNotificacion('❌ No hay más stock disponible de este producto');
+        return;
+      }
+      productoEnCarrito.cantidad++;
+    } else {
+      carrito.push({
+        ...producto,
+        cantidad: 1
+      });
+    }
+
+    // Guardar en localStorage
+    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
+    
+    actualizarCarrito();
+    mostrarNotificacion(`✅ ${producto.nombre} agregado al carrito`);
+    
+    // Feedback visual
+    const btn = document.querySelector(`.btn-agregar[data-id="${idProducto}"]`);
+    if (btn) {
+      const originalText = btn.textContent;
+      btn.textContent = '✅ ¡Agregado!';
+      btn.style.background = '#128C7E';
+      
+      setTimeout(() => {
+        btn.textContent = originalText;
+        btn.style.background = '#25D366';
+      }, 1500);
+    }
+  }
+
+  // Mostrar notificación (función mejorada)
+  function mostrarNotificacion(mensaje, tipo = 'success') {
+    // Eliminar notificación anterior si existe
+    const notificacionAnterior = document.querySelector('.notificacion');
+    if (notificacionAnterior) {
+      document.body.removeChild(notificacionAnterior);
+    }
+
+    const notificacion = document.createElement('div');
+    notificacion.className = 'notificacion';
+    notificacion.textContent = mensaje;
+    
+    // Colores según tipo
+    if (tipo === 'error') {
+      notificacion.style.background = '#ff4444';
+    } else if (tipo === 'warning') {
+      notificacion.style.background = '#ff9800';
+    }
+    
+    document.body.appendChild(notificacion);
+
+    setTimeout(() => {
+      if (document.body.contains(notificacion)) {
+        document.body.removeChild(notificacion);
+      }
+    }, 3000);
+  }
+
+  // Actualizar interfaz del carrito (función mejorada)
+  function actualizarCarrito() {
+    // Actualizar contador
+    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
+    if (elementos.contadorCarrito) {
+      elementos.contadorCarrito.textContent = totalItems;
+      elementos.contadorCarrito.style.display = totalItems > 0 ? 'flex' : 'none';
+    }
+    
+    // Actualizar lista de productos en el modal
+    if (!elementos.listaCarrito) return;
+    
+    if (carrito.length === 0) {
+      elementos.listaCarrito.innerHTML = '<div class="sin-productos">No hay productos en el carrito</div>';
+      if (elementos.totalCarrito) elementos.totalCarrito.innerHTML = '';
+      return;
+    }
+    
+    elementos.listaCarrito.innerHTML = '';
+    let total = 0;
+    
+    carrito.forEach(item => {
+      const subtotal = item.precio * item.cantidad;
+      total += subtotal;
+      
+      const productoElement = document.createElement('div');
+      productoElement.className = 'producto-carrito';
+      productoElement.innerHTML = `
+        <div class="producto-info">
+          <h4>${item.nombre}</h4>
+          <div>$${item.precio} c/u</div>
+        </div>
+        <div class="producto-cantidad">
+          <button class="btn-cantidad" data-id="${item.id}" data-accion="restar">-</button>
+          <span>${item.cantidad}</span>
+          <button class="btn-cantidad" data-id="${item.id}" data-accion="sumar">+</button>
+          <button class="btn-cantidad" data-id="${item.id}" data-accion="eliminar" style="margin-left:10px;">×</button>
+        </div>
+        <div class="producto-subtotal">$${subtotal}</div>
+      `;
+      
+      elementos.listaCarrito.appendChild(productoElement);
+    });
+    
+    if (elementos.totalCarrito) {
+      elementos.totalCarrito.innerHTML = `<h3>💰 Total: $${total}</h3>`;
+    }
+    
+    // Agregar eventos a los botones de cantidad
+    document.querySelectorAll('.btn-cantidad').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = parseInt(btn.dataset.id);
+        const accion = btn.dataset.accion;
+        modificarCantidad(id, accion);
+      });
+    });
+  }
+
+  // Modificar cantidad de productos en el carrito (función mejorada)
+  function modificarCantidad(id, accion) {
+    const item = carrito.find(item => item.id === id);
+    if (!item) return;
+    
+    // Verificar stock disponible
+    const productoOriginal = productos.find(p => p.id === id);
+    
+    switch(accion) {
+      case 'sumar':
+        if (productoOriginal?.stock !== undefined && item.cantidad >= productoOriginal.stock) {
+          mostrarNotificacion('❌ No hay más stock disponible', 'error');
+          return;
+        }
+        item.cantidad++;
+        break;
+      case 'restar':
+        if (item.cantidad > 1) {
+          item.cantidad--;
+        } else {
+          // Si la cantidad es 1, eliminar el producto
+          carrito = carrito.filter(item => item.id !== id);
+        }
+        break;
+      case 'eliminar':
+        carrito = carrito.filter(item => item.id !== id);
+        break;
+    }
+    
+    // Guardar cambios en localStorage
+    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
+    actualizarCarrito();
+  }
+
+  // Enviar pedido por WhatsApp (función mejorada)
+  function enviarPedidoWhatsApp() {
+    if (carrito.length === 0) {
+      mostrarNotificacion('🛒 El carrito está vacío', 'warning');
+      return;
+    }
+    
+    // Obtener configuración de WhatsApp
+    const config = cargarDesdeLocalStorage(STORAGE_KEYS.CONFIG);
+    const telefono = config?.whatsapp || '5493624840349';
+    
+    let mensaje = "Hola PuntoAlmacen, quiero hacer el siguiente pedido:%0A%0A";
+    
+    carrito.forEach(item => {
+      mensaje += `- ${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}%0A`;
+    });
+    
+    const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+    mensaje += `%0A💰 Total: $${total}%0A%0A📦 Mi dirección es: [COMPLETAR DIRECCIÓN]%0A📱 Mi teléfono es: [COMPLETAR TELÉFONO]`;
+    
+    const url = `https://wa.me/${telefono}?text=${mensaje}`;
+    window.open(url, '_blank');
+    
+    // Registrar pedido en localStorage (compatible con admin)
+    const nuevoPedido = {
+      id: Date.now(),
+      cliente: "Cliente Web",
+      telefono: "No especificado",
+      productos: [...carrito],
+      total: total,
+      estado: "pendiente",
+      fecha: new Date().toLocaleString('es-AR'),
+      timestamp: Date.now()
+    };
+    
+    let pedidos = cargarDesdeLocalStorage(STORAGE_KEYS.PEDIDOS) || [];
+    pedidos.push(nuevoPedido);
+    guardarEnLocalStorage(STORAGE_KEYS.PEDIDOS, pedidos);
+    
+    // Limpiar carrito después de enviar
+    carrito = [];
+    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
+    actualizarCarrito();
+    if (elementos.modalCarrito) {
+      elementos.modalCarrito.style.display = 'none';
+    }
+    
+    mostrarNotificacion('✅ ¡Pedido enviado por WhatsApp!');
+  }
+
+</script>
+</body>
+</html>
