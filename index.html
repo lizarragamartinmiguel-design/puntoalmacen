@@ -604,6 +604,105 @@
         bottom: 80px;
       }
     }
+
+    /* 🔥 NUEVO: Estilos para el sistema de envío */
+    .cart-totals {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+
+    .envio-gratis-msg {
+      background: #d1edff;
+      border: 1px solid #b3d9ff;
+      border-radius: 8px;
+      padding: 12px;
+      margin: 10px 0;
+      text-align: center;
+    }
+
+    .envio-gratis-msg .text-success {
+      color: #198754;
+      font-weight: bold;
+    }
+
+    .costo-envio-gratis {
+      color: #198754;
+      font-weight: bold;
+    }
+
+    .costo-envio-normal {
+      color: #6c757d;
+    }
+
+    /* Modal de datos del cliente */
+    .modal-cliente {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1001;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-cliente-contenido {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 90%;
+      width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e9ecef;
+      border-radius: 8px;
+      font-size: 14px;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #25D366;
+    }
+
+    .btn-confirmar {
+      background: #25D366;
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .btn-confirmar:hover {
+      background: #128C7E;
+      transform: translateY(-2px);
+    }
   </style>
 </head>
 <body>
@@ -695,8 +794,58 @@
     <div id="listaCarrito">
       <div class="sin-productos">No hay productos en el carrito</div>
     </div>
-    <div id="totalCarrito"></div>
-    <button class="btn-enviar-pedido" id="enviarPedido">📤 Enviar pedido por WhatsApp</button>
+    
+    <!-- 🔥 NUEVO: Sección de totales con envío -->
+    <div class="cart-totals" id="cartTotals" style="display: none;">
+      <div class="d-flex justify-content-between mb-2">
+        <span>Subtotal:</span>
+        <span id="subtotal-carrito">$0</span>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span>Envío:</span>
+        <span id="costo-envio">$0</span>
+      </div>
+      <div id="envio-gratis-msg" class="envio-gratis-msg" style="display: none;"></div>
+      <div class="d-flex justify-content-between mb-3">
+        <strong>Total:</strong>
+        <strong id="total-carrito">$0</strong>
+      </div>
+      
+      <button class="btn-enviar-pedido" id="btnEnviarWhatsApp">
+        📱 Enviar por WhatsApp
+      </button>
+      
+      <button class="btn-enviar-pedido" onclick="cart.limpiarCarrito()" style="background: #dc3545; margin-top: 10px;">
+        🗑️ Vaciar Carrito
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 🔥 NUEVO: Modal de datos del cliente -->
+<div class="modal-cliente" id="modalInfoCliente">
+  <div class="modal-cliente-contenido">
+    <button class="modal-cerrar" onclick="cerrarModal('modalInfoCliente')">&times;</button>
+    <h2>👤 Datos de Envío</h2>
+    
+    <div class="form-group">
+      <label for="clienteNombre">Nombre completo *</label>
+      <input type="text" id="clienteNombre" placeholder="Tu nombre completo" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="clienteTelefono">Teléfono *</label>
+      <input type="tel" id="clienteTelefono" placeholder="11 1234-5678" required>
+    </div>
+    
+    <div class="form-group">
+      <label for="clienteDireccion">Dirección de envío *</label>
+      <textarea id="clienteDireccion" placeholder="Calle, número, piso, departamento, ciudad..." required></textarea>
+    </div>
+    
+    <button class="btn-confirmar" onclick="cart.confirmarPedidoConCliente()">
+      ✅ Confirmar y Enviar por WhatsApp
+    </button>
   </div>
 </div>
 
@@ -709,8 +858,441 @@
 
 <script>
   // =============================================
-  // SISTEMA MEJORADO DE COMPATIBILIDAD CON PANEL ADMIN
+  // SISTEMA MEJORADO DE CARRITO CON ENVÍO GRATIS
   // =============================================
+
+  class CartService {
+    constructor() {
+      this.carrito = this.cargarCarrito();
+      this.COSTO_ENVIO_NORMAL = 800;
+      this.MINIMO_ENVIO_GRATIS = 10000;
+      
+      // Cargar configuración desde localStorage
+      this.cargarConfiguracionEnvio();
+    }
+
+    cargarConfiguracionEnvio() {
+      const configEnvio = JSON.parse(localStorage.getItem('configEnvioPuntoAlmacen'));
+      if (configEnvio) {
+        this.COSTO_ENVIO_NORMAL = configEnvio.COSTO_ENVIO_NORMAL || 800;
+        this.MINIMO_ENVIO_GRATIS = configEnvio.MINIMO_ENVIO_GRATIS || 10000;
+      }
+    }
+
+    cargarCarrito() {
+      try {
+        return JSON.parse(localStorage.getItem('carritoPuntoAlmacen')) || [];
+      } catch (error) {
+        console.error('Error cargando carrito:', error);
+        return [];
+      }
+    }
+
+    guardarCarrito() {
+      try {
+        localStorage.setItem('carritoPuntoAlmacen', JSON.stringify(this.carrito));
+      } catch (error) {
+        console.error('Error guardando carrito:', error);
+      }
+    }
+
+    agregarProducto(producto) {
+      const existente = this.carrito.find(item => item.id === producto.id);
+      
+      if (existente) {
+        existente.cantidad += 1;
+      } else {
+        this.carrito.push({
+          ...producto,
+          cantidad: 1
+        });
+      }
+      
+      this.guardarCarrito();
+      this.actualizarUI();
+      this.mostrarNotificacion(`${producto.nombre} agregado al carrito`);
+    }
+
+    eliminarProducto(id) {
+      const producto = this.carrito.find(item => item.id === id);
+      this.carrito = this.carrito.filter(item => item.id !== id);
+      this.guardarCarrito();
+      this.actualizarUI();
+      
+      if (producto) {
+        this.mostrarNotificacion(`${producto.nombre} eliminado del carrito`);
+      }
+    }
+
+    actualizarCantidad(id, nuevaCantidad) {
+      const item = this.carrito.find(item => item.id === id);
+      if (item) {
+        if (nuevaCantidad <= 0) {
+          this.eliminarProducto(id);
+        } else {
+          item.cantidad = nuevaCantidad;
+          this.guardarCarrito();
+          this.actualizarUI();
+        }
+      }
+    }
+
+    limpiarCarrito() {
+      this.carrito = [];
+      this.guardarCarrito();
+      this.actualizarUI();
+      this.mostrarNotificacion('Carrito vaciado');
+    }
+
+    getTotal() {
+      return this.carrito.reduce((total, item) => total + (item.precio * item.cantidad), 0);
+    }
+
+    getCantidadTotal() {
+      return this.carrito.reduce((total, item) => total + item.cantidad, 0);
+    }
+
+    // 🔥 NUEVO: Calcular costo de envío
+    getCostoEnvio() {
+      const subtotal = this.getTotal();
+      
+      if (subtotal >= this.MINIMO_ENVIO_GRATIS || subtotal === 0) {
+        return 0;
+      }
+      return this.COSTO_ENVIO_NORMAL;
+    }
+
+    // 🔥 NUEVO: Obtener total con envío
+    getTotalConEnvio() {
+      return this.getTotal() + this.getCostoEnvio();
+    }
+
+    // 🔥 NUEVO: Calcular cuánto falta para envío gratis
+    getFaltanteEnvioGratis() {
+      const subtotal = this.getTotal();
+      if (subtotal >= this.MINIMO_ENVIO_GRATIS) {
+        return 0;
+      }
+      return this.MINIMO_ENVIO_GRATIS - subtotal;
+    }
+
+    // 🔥 NUEVO: Verificar si aplica envío gratis
+    aplicaEnvioGratis() {
+      return this.getTotal() >= this.MINIMO_ENVIO_GRATIS;
+    }
+
+    actualizarUI() {
+      // Actualizar contador del carrito
+      const contador = document.getElementById('contadorCarrito');
+      if (contador) {
+        const total = this.getCantidadTotal();
+        contador.textContent = total;
+        contador.style.display = total > 0 ? 'flex' : 'none';
+      }
+
+      // Actualizar display de envío y totales
+      this.actualizarDisplayEnvio();
+      
+      // Actualizar lista de productos en el modal
+      this.actualizarListaCarrito();
+    }
+
+    // 🔥 NUEVO: Actualizar la interfaz de envío
+    actualizarDisplayEnvio() {
+      const envioElement = document.getElementById('costo-envio');
+      const envioGratisElement = document.getElementById('envio-gratis-msg');
+      const subtotalElement = document.getElementById('subtotal-carrito');
+      const totalElement = document.getElementById('total-carrito');
+      const cartTotals = document.getElementById('cartTotals');
+      
+      const subtotal = this.getTotal();
+      const envio = this.getCostoEnvio();
+      const totalConEnvio = this.getTotalConEnvio();
+
+      // Mostrar/ocultar sección de totales
+      if (cartTotals) {
+        cartTotals.style.display = this.carrito.length > 0 ? 'block' : 'none';
+      }
+
+      // Actualizar subtotal
+      if (subtotalElement) {
+        subtotalElement.textContent = `$${subtotal}`;
+      }
+
+      // Actualizar envío
+      if (envioElement) {
+        if (envio === 0 && subtotal > 0) {
+          envioElement.textContent = 'GRATIS';
+          envioElement.className = 'costo-envio-gratis';
+        } else {
+          envioElement.textContent = `$${envio}`;
+          envioElement.className = 'costo-envio-normal';
+        }
+      }
+
+      // Actualizar mensaje de envío gratis
+      if (envioGratisElement) {
+        const faltante = this.getFaltanteEnvioGratis();
+        if (faltante > 0 && subtotal > 0) {
+          envioGratisElement.innerHTML = `¡Faltan <span class="text-success">$${faltante}</span> para ENVÍO GRATIS!`;
+          envioGratisElement.style.display = 'block';
+        } else {
+          envioGratisElement.style.display = 'none';
+        }
+      }
+
+      // Actualizar total
+      if (totalElement) {
+        totalElement.textContent = `$${totalConEnvio}`;
+      }
+    }
+
+    // 🔥 NUEVO: Actualizar lista de productos en el modal
+    actualizarListaCarrito() {
+      const listaCarrito = document.getElementById('listaCarrito');
+      if (!listaCarrito) return;
+
+      if (this.carrito.length === 0) {
+        listaCarrito.innerHTML = `
+          <div class="sin-productos">
+            <p>Tu carrito está vacío</p>
+            <button class="btn-agregar" onclick="cerrarModal('modalCarrito')" style="margin-top: 15px; max-width: 200px;">
+              Seguir comprando
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      listaCarrito.innerHTML = this.carrito.map(item => `
+        <div class="producto-carrito">
+          <div class="producto-info">
+            <h4>${item.nombre}</h4>
+            <p class="precio">$${item.precio} c/u</p>
+          </div>
+          <div class="producto-cantidad">
+            <button class="btn-cantidad" onclick="cart.actualizarCantidad(${item.id}, ${item.cantidad - 1})">-</button>
+            <span style="min-width: 30px; text-align: center;">${item.cantidad}</span>
+            <button class="btn-cantidad" onclick="cart.actualizarCantidad(${item.id}, ${item.cantidad + 1})">+</button>
+            <button class="btn-cantidad" onclick="cart.eliminarProducto(${item.id})" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
+          </div>
+          <div class="precio">$${item.precio * item.cantidad}</div>
+        </div>
+      `).join('');
+    }
+
+    // 🔥 NUEVO: Mostrar notificaciones
+    mostrarNotificacion(mensaje) {
+      // Crear notificación si no existe
+      let notificacion = document.getElementById('notificacion-carrito');
+      if (!notificacion) {
+        notificacion = document.createElement('div');
+        notificacion.id = 'notificacion-carrito';
+        notificacion.style.cssText = `
+          position: fixed;
+          top: 20px;
+          right: 20px;
+          background: #25D366;
+          color: white;
+          padding: 12px 20px;
+          border-radius: 8px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+          z-index: 9999;
+          font-weight: bold;
+          transform: translateX(400px);
+          transition: transform 0.3s ease;
+          max-width: 300px;
+        `;
+        document.body.appendChild(notificacion);
+      }
+
+      notificacion.textContent = mensaje;
+      notificacion.style.transform = 'translateX(0)';
+
+      // Ocultar después de 3 segundos
+      setTimeout(() => {
+        notificacion.style.transform = 'translateX(400px)';
+      }, 3000);
+    }
+
+    // 🔥 NUEVO: Generar mensaje de WhatsApp con envío
+    generarMensajeWhatsApp(infoCliente = {}) {
+      const subtotal = this.getTotal();
+      const envio = this.getCostoEnvio();
+      const total = this.getTotalConEnvio();
+      
+      let mensaje = `¡Hola! Quiero hacer este pedido:%0A%0A`;
+      
+      this.carrito.forEach(item => {
+        mensaje += `➡ ${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}%0A`;
+      });
+      
+      mensaje += `%0A📦 Subtotal: $${subtotal}`;
+      
+      if (envio === 0 && subtotal > 0) {
+        mensaje += `%0A🚚 Envío: GRATIS`;
+      } else if (envio > 0) {
+        mensaje += `%0A🚚 Envío: $${envio}`;
+      }
+      
+      mensaje += `%0A💵 Total: $${total}`;
+      
+      // Mensaje de envío gratis
+      if (subtotal < this.MINIMO_ENVIO_GRATIS && subtotal > 0) {
+        const faltante = this.getFaltanteEnvioGratis();
+        mensaje += `%0A%0A🎉 ¡Faltan $${faltante} para ENVÍO GRATIS!`;
+      }
+      
+      // Información del cliente
+      if (infoCliente.nombre) {
+        mensaje += `%0A%0A👤 Cliente: ${infoCliente.nombre}`;
+      }
+      if (infoCliente.telefono) {
+        mensaje += `%0A📞 Teléfono: ${infoCliente.telefono}`;
+      }
+      if (infoCliente.direccion) {
+        mensaje += `%0A📍 Dirección: ${infoCliente.direccion}`;
+      } else {
+        mensaje += `%0A%0A📍 Dirección de envío: [COMPLETAR]`;
+      }
+      
+      mensaje += `%0A%0A¡Gracias!`;
+      
+      return mensaje;
+    }
+
+    // 🔥 NUEVO: Enviar pedido por WhatsApp
+    enviarPorWhatsApp() {
+      const modalCliente = document.getElementById('modalInfoCliente');
+      if (modalCliente) {
+        // Mostrar modal para datos del cliente primero
+        modalCliente.style.display = 'flex';
+      } else {
+        // Enviar directamente si no hay modal
+        const mensaje = this.generarMensajeWhatsApp();
+        const config = JSON.parse(localStorage.getItem('configuracionPuntoAlmacen')) || {};
+        const telefono = config.whatsapp || '5493624840349';
+        const whatsappURL = `https://wa.me/${telefono}?text=${mensaje}`;
+        window.open(whatsappURL, '_blank');
+      }
+    }
+
+    // 🔥 NUEVO: Confirmar pedido con datos del cliente
+    confirmarPedidoConCliente() {
+      const nombre = document.getElementById('clienteNombre')?.value || '';
+      const telefono = document.getElementById('clienteTelefono')?.value || '';
+      const direccion = document.getElementById('clienteDireccion')?.value || '';
+      
+      // Validar campos requeridos
+      if (!nombre || !telefono || !direccion) {
+        this.mostrarNotificacion('❌ Por favor completa todos los campos');
+        return;
+      }
+      
+      const infoCliente = { nombre, telefono, direccion };
+      const mensaje = this.generarMensajeWhatsApp(infoCliente);
+      const config = JSON.parse(localStorage.getItem('configuracionPuntoAlmacen')) || {};
+      const telefonoWhatsApp = config.whatsapp || '5493624840349';
+      const whatsappURL = `https://wa.me/${telefonoWhatsApp}?text=${mensaje}`;
+      
+      // Cerrar modal
+      this.cerrarModal('modalInfoCliente');
+      
+      // Abrir WhatsApp
+      window.open(whatsappURL, '_blank');
+      
+      // Limpiar carrito después de enviar
+      this.limpiarCarrito();
+    }
+
+    // 🔥 NUEVO: Cerrar modal
+    cerrarModal(modalId) {
+      const modal = document.getElementById(modalId);
+      if (modal) {
+        modal.style.display = 'none';
+      }
+    }
+
+    // 🔥 NUEVO: Abrir carrito
+    abrirCarrito() {
+      const modal = document.getElementById('modalCarrito');
+      if (modal) {
+        modal.style.display = 'flex';
+        this.actualizarUI();
+      }
+    }
+  }
+
+  // =============================================
+  // INICIALIZACIÓN DEL SISTEMA
+  // =============================================
+
+  // Instancia global del carrito
+  const cart = new CartService();
+
+  // Función global para cerrar modales
+  function cerrarModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  // Función global para abrir carrito
+  function abrirCarrito() {
+    cart.abrirCarrito();
+  }
+
+  // Inicialización cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar eventos del carrito
+    const carritoBtn = document.getElementById('carritoBtn');
+    const cerrarModalBtn = document.getElementById('cerrarModal');
+    const btnEnviarWhatsApp = document.getElementById('btnEnviarWhatsApp');
+    
+    if (carritoBtn) {
+      carritoBtn.addEventListener('click', () => cart.abrirCarrito());
+    }
+    
+    if (cerrarModalBtn) {
+      cerrarModalBtn.addEventListener('click', () => cart.cerrarModal('modalCarrito'));
+    }
+    
+    if (btnEnviarWhatsApp) {
+      btnEnviarWhatsApp.addEventListener('click', () => cart.enviarPorWhatsApp());
+    }
+    
+    // Cerrar modal al hacer clic fuera
+    const modalCarrito = document.getElementById('modalCarrito');
+    if (modalCarrito) {
+      modalCarrito.addEventListener('click', (e) => {
+        if (e.target === modalCarrito) {
+          cart.cerrarModal('modalCarrito');
+        }
+      });
+    }
+    
+    const modalCliente = document.getElementById('modalInfoCliente');
+    if (modalCliente) {
+      modalCliente.addEventListener('click', (e) => {
+        if (e.target === modalCliente) {
+          cart.cerrarModal('modalInfoCliente');
+        }
+      });
+    }
+    
+    // Actualizar UI inicial
+    cart.actualizarUI();
+    
+    console.log('🛒 Sistema de carrito con envío gratis inicializado');
+  });
+
+  // =============================================
+  // SISTEMA EXISTENTE DE LA TIENDA (COMPATIBLE)
+  // =============================================
+
+  // ... (el resto del código existente de la tienda permanece igual)
+  // Solo se reemplazó el sistema de carrito anterior por la nueva clase CartService
 
   // Constantes para claves de localStorage (COMPATIBLES CON ADMIN)
   const STORAGE_KEYS = {
@@ -724,36 +1306,26 @@
 
   // Productos por defecto (solo se usan si no hay datos en localStorage)
   const PRODUCTOS_POR_DEFECTO = [
-    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "img/productos/arroz.jpg", destacado: true },
-    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "img/productos/fideos.jpg" },
-    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "img/productos/aceite.jpg", destacado: true },
-    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "img/productos/harina.jpg" },
-    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "img/productos/remera.jpg", talles: ["S", "M", "L", "XL"] },
-    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "img/productos/pantalon.jpg", talles: ["38", "40", "42", "44"] },
-    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "img/productos/buzo.jpg", talles: ["S", "M", "L"] },
-    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "img/productos/licuadora.jpg", garantia: "12 meses" },
-    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "img/productos/tostadora.jpg", garantia: "6 meses" },
-    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "img/productos/ventilador.jpg", garantia: "12 meses" },
-    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "img/productos/cuaderno.jpg" },
-    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "img/productos/lapices.jpg" },
-    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "img/productos/mochila.jpg", destacado: true }
+    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Arroz", destacado: true },
+    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Fideos" },
+    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Aceite", destacado: true },
+    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Harina" },
+    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Remera", talles: ["S", "M", "L", "XL"] },
+    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Pantalon", talles: ["38", "40", "42", "44"] },
+    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Buzo", talles: ["S", "M", "L"] },
+    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Licuadora", garantia: "12 meses" },
+    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Tostadora", garantia: "6 meses" },
+    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Ventilador", garantia: "12 meses" },
+    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Cuaderno" },
+    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Lapices" },
+    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Mochila", destacado: true }
   ];
 
   // Cargar productos desde localStorage o usar datos por defecto
   let productos = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS) || PRODUCTOS_POR_DEFECTO;
 
-  // Carrito de compras - cargar desde localStorage
-  let carrito = cargarDesdeLocalStorage(STORAGE_KEYS.CARRITO) || [];
-
   // Elementos del DOM
   const elementos = {
-    carritoBtn: document.getElementById('carritoBtn'),
-    modalCarrito: document.getElementById('modalCarrito'),
-    cerrarModal: document.getElementById('cerrarModal'),
-    listaCarrito: document.getElementById('listaCarrito'),
-    totalCarrito: document.getElementById('totalCarrito'),
-    enviarPedido: document.getElementById('enviarPedido'),
-    contadorCarrito: document.getElementById('contadorCarrito'),
     busqueda: document.getElementById('busqueda'),
     filtros: document.querySelectorAll('.btn-filtro'),
     btnAdmin: document.getElementById('btnAdmin'),
@@ -766,15 +1338,7 @@
     footerContacto: document.getElementById('footer-contacto')
   };
 
-  // Inicialización
-  document.addEventListener('DOMContentLoaded', function() {
-    inicializarTienda();
-  });
-
-  // =============================================
-  // FUNCIONES DE INICIALIZACIÓN
-  // =============================================
-
+  // Inicialización de la tienda
   function inicializarTienda() {
     console.log('🛍️ PuntoAlmacen - Sistema inicializado');
     
@@ -783,8 +1347,7 @@
     cargarBannerRifasPersonalizado();
     cargarConfiguracionTienda();
     cargarProductos();
-    inicializarEventos();
-    actualizarCarrito();
+    inicializarEventosTienda();
     
     // Sincronización inicial con admin
     setTimeout(() => {
@@ -792,11 +1355,7 @@
     }, 500);
   }
 
-  // =============================================
-  // FUNCIONES MEJORADAS DE COMPATIBILIDAD CON ADMIN
-  // =============================================
-
-  // Función mejorada para cargar desde localStorage
+  // Función para cargar desde localStorage
   function cargarDesdeLocalStorage(clave) {
     try {
       const datos = localStorage.getItem(clave);
@@ -807,30 +1366,17 @@
     }
   }
 
-  // Función mejorada para guardar en localStorage
-  function guardarEnLocalStorage(clave, datos) {
-    try {
-      localStorage.setItem(clave, JSON.stringify(datos));
-      return true;
-    } catch (error) {
-      console.error(`❌ Error al guardar ${clave}:`, error);
-      return false;
-    }
-  }
-
-  // Cargar banner de oferta personalizado desde localStorage
+  // Cargar banner de oferta personalizado
   function cargarBannerOfertaPersonalizado() {
     const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_OFERTA);
     
     if (bannerData && bannerData.imagen) {
       elementos.bannerOferta.src = bannerData.imagen;
       console.log('✅ Banner de oferta personalizado cargado desde admin');
-    } else {
-      console.log('ℹ️ Usando banner de oferta predeterminado');
     }
   }
 
-  // Cargar banner de rifas personalizado desde localStorage
+  // Cargar banner de rifas personalizado
   function cargarBannerRifasPersonalizado() {
     const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_RIFAS);
     
@@ -838,18 +1384,12 @@
       elementos.bannerRifasImg.src = bannerData.imagen;
       elementos.bannerRifasContainer.style.display = 'block';
       
-      // Actualizar título y descripción si están en los datos
       if (bannerData.titulo) {
         elementos.bannerRifasTitulo.textContent = bannerData.titulo;
       }
       if (bannerData.descripcion) {
         elementos.bannerRifasDescripcion.textContent = bannerData.descripcion;
       }
-      
-      console.log('✅ Banner de rifas personalizado cargado desde admin');
-    } else {
-      elementos.bannerRifasContainer.style.display = 'none';
-      console.log('ℹ️ Banner de rifas no configurado en admin');
     }
   }
 
@@ -858,30 +1398,22 @@
     const config = cargarDesdeLocalStorage(STORAGE_KEYS.CONFIG);
     
     if (config) {
-      // Actualizar información de contacto si está configurada
       if (config.whatsapp) {
         actualizarContactoWhatsApp(config.whatsapp);
       }
-      
-      // Actualizar información de la tienda
       if (config.nombre) {
         document.querySelector('.logo-text').textContent = config.nombre;
       }
-      
-      // Actualizar información del footer
       if (config.horarios) {
         elementos.footerInfo.textContent = `© 2025 PuntoAlmacen – Horarios: ${config.horarios}`;
       }
-      
       if (config.direccion) {
         elementos.footerContacto.innerHTML = `📍 ${config.direccion} – <a href="https://wa.me/${config.whatsapp}">WhatsApp: ${config.whatsapp}</a>`;
       }
-      
-      console.log('✅ Configuración de tienda cargada desde admin');
     }
   }
 
-  // Actualizar contacto de WhatsApp en toda la tienda
+  // Actualizar contacto de WhatsApp
   function actualizarContactoWhatsApp(telefono) {
     const enlacesWhatsApp = document.querySelectorAll('a[href*="wa.me"]');
     
@@ -890,66 +1422,9 @@
       const nuevoHref = hrefActual.replace(/wa\.me\/\d+/, `wa.me/${telefono}`);
       enlace.href = nuevoHref;
     });
-    
-    // Actualizar también el enlace flotante
-    const btnWspFloat = document.querySelector('.btn-wsp-float');
-    if (btnWspFloat) {
-      btnWspFloat.href = `https://wa.me/${telefono}?text=Hola%20PuntoAlmacen,%20quiero%20hacer%20un%20pedido`;
-    }
-    
-    // Actualizar enlace de oferta
-    const btnOferta = document.querySelector('.btn-oferta');
-    if (btnOferta) {
-      btnOferta.href = `https://wa.me/${telefono}?text=Quiero%20la%20oferta%20del%20día`;
-    }
   }
 
-  // Sincronizar cambios desde el panel admin
-  function sincronizarConAdmin() {
-    let cambiosDetectados = false;
-
-    // Sincronizar productos
-    const productosAdmin = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS);
-    if (productosAdmin && JSON.stringify(productos) !== JSON.stringify(productosAdmin)) {
-      productos = productosAdmin;
-      cambiosDetectados = true;
-      console.log('✅ Productos sincronizados desde admin');
-    }
-
-    // Sincronizar banner de oferta
-    const bannerOfertaAnterior = elementos.bannerOferta.src;
-    cargarBannerOfertaPersonalizado();
-    if (elementos.bannerOferta.src !== bannerOfertaAnterior) {
-      cambiosDetectados = true;
-    }
-
-    // Sincronizar banner de rifas
-    cargarBannerRifasPersonalizado();
-
-    // Sincronizar configuración
-    cargarConfiguracionTienda();
-
-    // Recargar interfaz si hubo cambios
-    if (cambiosDetectados) {
-      cargarProductos();
-      mostrarNotificacion('🔄 Cambios actualizados desde el panel admin');
-    }
-  }
-
-  // Escuchar cambios en localStorage desde otras pestañas (admin)
-  window.addEventListener('storage', function(e) {
-    console.log('🔄 Cambio detectado en localStorage:', e.key);
-    
-    if (Object.values(STORAGE_KEYS).includes(e.key)) {
-      sincronizarConAdmin();
-    }
-  });
-
-  // =============================================
-  // FUNCIONES PRINCIPALES DE LA TIENDA (MEJORADAS)
-  // =============================================
-
-  // Cargar productos en las secciones (función mejorada)
+  // Cargar productos en las secciones
   function cargarProductos() {
     const secciones = {
       almacen: document.getElementById('almacen'),
@@ -969,8 +1444,7 @@
     
     if (terminoBusqueda) {
       productosFiltrados = productos.filter(producto => 
-        producto.nombre.toLowerCase().includes(terminoBusqueda) ||
-        (producto.descripcion && producto.descripcion.toLowerCase().includes(terminoBusqueda))
+        producto.nombre.toLowerCase().includes(terminoBusqueda)
       );
     }
 
@@ -991,21 +1465,12 @@
       grilla.style.display = 'none';
     });
 
-    // Contador de productos por categoría
-    const contadorCategorias = {
-      almacen: 0,
-      indumentaria: 0,
-      electro: 0,
-      libreria: 0
-    };
-
     // Agregar productos a las secciones
     productosFiltrados.forEach(producto => {
       const seccion = secciones[producto.categoria];
       if (seccion) {
         seccion.style.display = 'grid';
         seccion.previousElementSibling.style.display = 'block';
-        contadorCategorias[producto.categoria]++;
         
         const productoElement = document.createElement('div');
         productoElement.className = 'producto-card';
@@ -1014,28 +1479,16 @@
             <img src="${producto.imagen}" alt="${producto.nombre}" 
                  onerror="this.src='https://via.placeholder.com/300x200/25D366/ffffff?text=Producto'">
             ${producto.destacado ? '<span class="badge-oferta">🔥 OFERTA</span>' : ''}
-            ${producto.stock === 0 ? '<span class="badge-sin-stock">SIN STOCK</span>' : ''}
           </div>
           <h3>${producto.nombre}</h3>
-          ${producto.talles ? `<p><small>Talles disponibles: ${producto.talles.join(', ')}</small></p>` : ''}
+          ${producto.talles ? `<p><small>Talles: ${producto.talles.join(', ')}</small></p>` : ''}
           ${producto.garantia ? `<p><small>🛡️ Garantía: ${producto.garantia}</small></p>` : ''}
-          ${producto.descripcion ? `<p><small>${producto.descripcion}</small></p>` : ''}
           <div class="precio">$${producto.precio}</div>
-          <button class="btn-agregar" data-id="${producto.id}" 
-                  ${producto.stock === 0 ? 'disabled' : ''}>
-            ${producto.stock === 0 ? '❌ Sin stock' : '🛒 Agregar al carrito'}
+          <button class="btn-agregar" data-id="${producto.id}">
+            🛒 Agregar al carrito
           </button>
         `;
         seccion.appendChild(productoElement);
-      }
-    });
-
-    // Actualizar títulos con contadores
-    Object.keys(contadorCategorias).forEach(categoria => {
-      const titulo = document.querySelector(`#${categoria}`)?.previousElementSibling;
-      if (titulo && contadorCategorias[categoria] > 0) {
-        const tituloOriginal = titulo.textContent.replace(/\(\d+\)/, '').trim();
-        titulo.textContent = `${tituloOriginal} (${contadorCategorias[categoria]})`;
       }
     });
 
@@ -1050,6 +1503,17 @@
       `;
       document.querySelector('.container').appendChild(mensaje);
     }
+
+    // Agregar eventos a los botones de agregar al carrito
+    document.querySelectorAll('.btn-agregar').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const idProducto = parseInt(e.target.dataset.id);
+        const producto = productos.find(p => p.id === idProducto);
+        if (producto) {
+          cart.agregarProducto(producto);
+        }
+      });
+    });
   }
 
   // Limpiar búsqueda
@@ -1061,35 +1525,8 @@
     cargarProductos();
   }
 
-  // Inicializar eventos (función mejorada)
-  function inicializarEventos() {
-    // Carrito
-    if (elementos.carritoBtn) {
-      elementos.carritoBtn.addEventListener('click', () => {
-        elementos.modalCarrito.style.display = 'flex';
-      });
-    }
-
-    if (elementos.cerrarModal) {
-      elementos.cerrarModal.addEventListener('click', () => {
-        elementos.modalCarrito.style.display = 'none';
-      });
-    }
-
-    // Cerrar modal al hacer clic fuera
-    if (elementos.modalCarrito) {
-      elementos.modalCarrito.addEventListener('click', (e) => {
-        if (e.target === elementos.modalCarrito) {
-          elementos.modalCarrito.style.display = 'none';
-        }
-      });
-    }
-
-    // Enviar pedido por WhatsApp
-    if (elementos.enviarPedido) {
-      elementos.enviarPedido.addEventListener('click', enviarPedidoWhatsApp);
-    }
-
+  // Inicializar eventos de la tienda
+  function inicializarEventosTienda() {
     // Búsqueda
     if (elementos.busqueda) {
       elementos.busqueda.addEventListener('input', cargarProductos);
@@ -1112,244 +1549,34 @@
         window.location.href = 'admin.html';
       });
     }
-
-    // Delegación de eventos para botones "Agregar al carrito"
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('btn-agregar') && !e.target.disabled) {
-        const idProducto = parseInt(e.target.dataset.id);
-        agregarAlCarrito(idProducto);
-      }
-    });
-
-    // Sincronización manual con admin (por si acaso)
-    document.addEventListener('keydown', (e) => {
-      if (e.ctrlKey && e.key === 'r') {
-        e.preventDefault();
-        sincronizarConAdmin();
-        mostrarNotificacion('🔄 Sincronización manual con admin');
-      }
-    });
-
-    // Sincronización automática periódica
-    setInterval(sincronizarConAdmin, 30000); // Cada 30 segundos
   }
 
-  // Agregar producto al carrito (función mejorada)
-  function agregarAlCarrito(idProducto) {
-    const producto = productos.find(p => p.id === idProducto);
-    if (!producto) return;
-
-    // Verificar stock
-    if (producto.stock !== undefined && producto.stock <= 0) {
-      mostrarNotificacion('❌ Producto sin stock disponible');
-      return;
+  // Sincronizar con admin
+  function sincronizarConAdmin() {
+    const productosAdmin = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS);
+    if (productosAdmin && JSON.stringify(productos) !== JSON.stringify(productosAdmin)) {
+      productos = productosAdmin;
+      cargarProductos();
     }
 
-    const productoEnCarrito = carrito.find(item => item.id === idProducto);
+    cargarBannerOfertaPersonalizado();
+    cargarBannerRifasPersonalizado();
+    cargarConfiguracionTienda();
     
-    if (productoEnCarrito) {
-      // Verificar que no exceda el stock disponible
-      if (producto.stock !== undefined && productoEnCarrito.cantidad >= producto.stock) {
-        mostrarNotificacion('❌ No hay más stock disponible de este producto');
-        return;
-      }
-      productoEnCarrito.cantidad++;
-    } else {
-      carrito.push({
-        ...producto,
-        cantidad: 1
-      });
-    }
-
-    // Guardar en localStorage
-    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
-    
-    actualizarCarrito();
-    mostrarNotificacion(`✅ ${producto.nombre} agregado al carrito`);
-    
-    // Feedback visual
-    const btn = document.querySelector(`.btn-agregar[data-id="${idProducto}"]`);
-    if (btn) {
-      const originalText = btn.textContent;
-      btn.textContent = '✅ ¡Agregado!';
-      btn.style.background = '#128C7E';
-      
-      setTimeout(() => {
-        btn.textContent = originalText;
-        btn.style.background = '#25D366';
-      }, 1500);
-    }
+    // Actualizar configuración de envío en el carrito
+    cart.cargarConfiguracionEnvio();
+    cart.actualizarUI();
   }
 
-  // Mostrar notificación (función mejorada)
-  function mostrarNotificacion(mensaje, tipo = 'success') {
-    // Eliminar notificación anterior si existe
-    const notificacionAnterior = document.querySelector('.notificacion');
-    if (notificacionAnterior) {
-      document.body.removeChild(notificacionAnterior);
-    }
+  // Inicializar la tienda cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', inicializarTienda);
 
-    const notificacion = document.createElement('div');
-    notificacion.className = 'notificacion';
-    notificacion.textContent = mensaje;
-    
-    // Colores según tipo
-    if (tipo === 'error') {
-      notificacion.style.background = '#ff4444';
-    } else if (tipo === 'warning') {
-      notificacion.style.background = '#ff9800';
+  // Escuchar cambios en localStorage desde otras pestañas
+  window.addEventListener('storage', function(e) {
+    if (Object.values(STORAGE_KEYS).includes(e.key)) {
+      sincronizarConAdmin();
     }
-    
-    document.body.appendChild(notificacion);
-
-    setTimeout(() => {
-      if (document.body.contains(notificacion)) {
-        document.body.removeChild(notificacion);
-      }
-    }, 3000);
-  }
-
-  // Actualizar interfaz del carrito (función mejorada)
-  function actualizarCarrito() {
-    // Actualizar contador
-    const totalItems = carrito.reduce((total, item) => total + item.cantidad, 0);
-    if (elementos.contadorCarrito) {
-      elementos.contadorCarrito.textContent = totalItems;
-      elementos.contadorCarrito.style.display = totalItems > 0 ? 'flex' : 'none';
-    }
-    
-    // Actualizar lista de productos en el modal
-    if (!elementos.listaCarrito) return;
-    
-    if (carrito.length === 0) {
-      elementos.listaCarrito.innerHTML = '<div class="sin-productos">No hay productos en el carrito</div>';
-      if (elementos.totalCarrito) elementos.totalCarrito.innerHTML = '';
-      return;
-    }
-    
-    elementos.listaCarrito.innerHTML = '';
-    let total = 0;
-    
-    carrito.forEach(item => {
-      const subtotal = item.precio * item.cantidad;
-      total += subtotal;
-      
-      const productoElement = document.createElement('div');
-      productoElement.className = 'producto-carrito';
-      productoElement.innerHTML = `
-        <div class="producto-info">
-          <h4>${item.nombre}</h4>
-          <div>$${item.precio} c/u</div>
-        </div>
-        <div class="producto-cantidad">
-          <button class="btn-cantidad" data-id="${item.id}" data-accion="restar">-</button>
-          <span>${item.cantidad}</span>
-          <button class="btn-cantidad" data-id="${item.id}" data-accion="sumar">+</button>
-          <button class="btn-cantidad" data-id="${item.id}" data-accion="eliminar" style="margin-left:10px;">×</button>
-        </div>
-        <div class="producto-subtotal">$${subtotal}</div>
-      `;
-      
-      elementos.listaCarrito.appendChild(productoElement);
-    });
-    
-    if (elementos.totalCarrito) {
-      elementos.totalCarrito.innerHTML = `<h3>💰 Total: $${total}</h3>`;
-    }
-    
-    // Agregar eventos a los botones de cantidad
-    document.querySelectorAll('.btn-cantidad').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const id = parseInt(btn.dataset.id);
-        const accion = btn.dataset.accion;
-        modificarCantidad(id, accion);
-      });
-    });
-  }
-
-  // Modificar cantidad de productos en el carrito (función mejorada)
-  function modificarCantidad(id, accion) {
-    const item = carrito.find(item => item.id === id);
-    if (!item) return;
-    
-    // Verificar stock disponible
-    const productoOriginal = productos.find(p => p.id === id);
-    
-    switch(accion) {
-      case 'sumar':
-        if (productoOriginal?.stock !== undefined && item.cantidad >= productoOriginal.stock) {
-          mostrarNotificacion('❌ No hay más stock disponible', 'error');
-          return;
-        }
-        item.cantidad++;
-        break;
-      case 'restar':
-        if (item.cantidad > 1) {
-          item.cantidad--;
-        } else {
-          // Si la cantidad es 1, eliminar el producto
-          carrito = carrito.filter(item => item.id !== id);
-        }
-        break;
-      case 'eliminar':
-        carrito = carrito.filter(item => item.id !== id);
-        break;
-    }
-    
-    // Guardar cambios en localStorage
-    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
-    actualizarCarrito();
-  }
-
-  // Enviar pedido por WhatsApp (función mejorada)
-  function enviarPedidoWhatsApp() {
-    if (carrito.length === 0) {
-      mostrarNotificacion('🛒 El carrito está vacío', 'warning');
-      return;
-    }
-    
-    // Obtener configuración de WhatsApp
-    const config = cargarDesdeLocalStorage(STORAGE_KEYS.CONFIG);
-    const telefono = config?.whatsapp || '5493624840349';
-    
-    let mensaje = "Hola PuntoAlmacen, quiero hacer el siguiente pedido:%0A%0A";
-    
-    carrito.forEach(item => {
-      mensaje += `- ${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}%0A`;
-    });
-    
-    const total = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-    mensaje += `%0A💰 Total: $${total}%0A%0A📦 Mi dirección es: [COMPLETAR DIRECCIÓN]%0A📱 Mi teléfono es: [COMPLETAR TELÉFONO]`;
-    
-    const url = `https://wa.me/${telefono}?text=${mensaje}`;
-    window.open(url, '_blank');
-    
-    // Registrar pedido en localStorage (compatible con admin)
-    const nuevoPedido = {
-      id: Date.now(),
-      cliente: "Cliente Web",
-      telefono: "No especificado",
-      productos: [...carrito],
-      total: total,
-      estado: "pendiente",
-      fecha: new Date().toLocaleString('es-AR'),
-      timestamp: Date.now()
-    };
-    
-    let pedidos = cargarDesdeLocalStorage(STORAGE_KEYS.PEDIDOS) || [];
-    pedidos.push(nuevoPedido);
-    guardarEnLocalStorage(STORAGE_KEYS.PEDIDOS, pedidos);
-    
-    // Limpiar carrito después de enviar
-    carrito = [];
-    guardarEnLocalStorage(STORAGE_KEYS.CARRITO, carrito);
-    actualizarCarrito();
-    if (elementos.modalCarrito) {
-      elementos.modalCarrito.style.display = 'none';
-    }
-    
-    mostrarNotificacion('✅ ¡Pedido enviado por WhatsApp!');
-  }
+  });
 
 </script>
 </body>

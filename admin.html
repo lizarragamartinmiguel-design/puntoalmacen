@@ -622,6 +622,8 @@
                 <th>ID</th>
                 <th>Cliente</th>
                 <th>Productos</th>
+                <th>Subtotal</th>
+                <th>Envío</th>
                 <th>Total</th>
                 <th>Estado</th>
                 <th>Fecha</th>
@@ -817,6 +819,19 @@
               <label for="config-mensaje">Mensaje Automático WhatsApp</label>
               <textarea id="config-mensaje">Hola PuntoAlmacen, quiero hacer un pedido</textarea>
             </div>
+
+            <!-- 🔥 NUEVO: Configuración de envío -->
+            <div class="form-group">
+              <label for="config-envio-gratis">Mínimo para envío gratis</label>
+              <input type="number" id="config-envio-gratis" value="10000" required>
+              <small>Establece el monto mínimo para que el envío sea gratuito</small>
+            </div>
+
+            <div class="form-group">
+              <label for="config-costo-envio">Costo normal de envío</label>
+              <input type="number" id="config-costo-envio" value="800" required>
+              <small>Costo de envío cuando no se alcanza el mínimo</small>
+            </div>
             
             <button type="submit" class="btn btn-primary">Guardar Configuración</button>
           </form>
@@ -834,6 +849,12 @@
     const ADMIN_CREDENTIALS = {
       username: 'admin',
       password: 'admin123'
+    };
+
+    // 🔥 NUEVO: Configuración de envío
+    const CONFIG_ENVIO = {
+      MINIMO_ENVIO_GRATIS: 10000,
+      COSTO_ENVIO_NORMAL: 800
     };
 
     // Verificar si el usuario ya está logueado
@@ -869,6 +890,7 @@
     function mostrarPanelAdmin() {
       document.getElementById('login-screen').style.display = 'none';
       document.getElementById('admin-panel').style.display = 'flex';
+      cargarConfiguracionEnvio();
       cargarDashboard();
       cargarProductos();
       cargarPedidos();
@@ -921,7 +943,9 @@
           { id: 1, nombre: "Arroz", precio: 450, cantidad: 2 },
           { id: 3, nombre: "Aceite", precio: 780, cantidad: 1 }
         ],
-        total: 1680,
+        subtotal: 1680,
+        envio: 800,
+        total: 2480,
         estado: "pendiente",
         fecha: "2024-01-15 10:30"
       },
@@ -933,9 +957,24 @@
           { id: 10, nombre: "Cuaderno", precio: 350, cantidad: 3 },
           { id: 11, nombre: "Lápices", precio: 180, cantidad: 2 }
         ],
-        total: 1410,
+        subtotal: 1410,
+        envio: 800,
+        total: 2210,
         estado: "completado",
         fecha: "2024-01-14 15:45"
+      },
+      { 
+        id: 3, 
+        cliente: "Carlos López", 
+        telefono: "3624556677",
+        productos: [
+          { id: 7, nombre: "Licuadora", precio: 12500, cantidad: 1 }
+        ],
+        subtotal: 12500,
+        envio: 0,
+        total: 12500,
+        estado: "pendiente",
+        fecha: "2024-01-15 14:20"
       }
     ];
 
@@ -943,6 +982,29 @@
     let bannerOfertaFile = null;
     let bannerRifasFile = null;
     let productoFile = null;
+
+    // =============================================
+    // CONFIGURACIÓN DE ENVÍO
+    // =============================================
+
+    // 🔥 NUEVO: Cargar configuración de envío
+    function cargarConfiguracionEnvio() {
+      const configEnvio = JSON.parse(localStorage.getItem('configEnvioPuntoAlmacen')) || CONFIG_ENVIO;
+      
+      document.getElementById('config-envio-gratis').value = configEnvio.MINIMO_ENVIO_GRATIS;
+      document.getElementById('config-costo-envio').value = configEnvio.COSTO_ENVIO_NORMAL;
+    }
+
+    // 🔥 NUEVO: Guardar configuración de envío
+    function guardarConfiguracionEnvio() {
+      const configEnvio = {
+        MINIMO_ENVIO_GRATIS: parseInt(document.getElementById('config-envio-gratis').value),
+        COSTO_ENVIO_NORMAL: parseInt(document.getElementById('config-costo-envio').value)
+      };
+      
+      localStorage.setItem('configEnvioPuntoAlmacen', JSON.stringify(configEnvio));
+      return configEnvio;
+    }
 
     // =============================================
     // NAVEGACIÓN
@@ -1262,15 +1324,43 @@
           <td>
             ${pedido.productos.map(p => `${p.nombre} x${p.cantidad}`).join('<br>')}
           </td>
+          <td>$${pedido.subtotal}</td>
+          <td>${pedido.envio === 0 ? '<span class="text-success">GRATIS</span>' : `$${pedido.envio}`}</td>
           <td>$${pedido.total}</td>
           <td><span class="estado-${pedido.estado}">${pedido.estado}</span></td>
           <td>${pedido.fecha}</td>
           <td>
             <button class="btn btn-sm btn-primary" onclick="cambiarEstadoPedido(${pedido.id}, 'completado')">Completar</button>
             <button class="btn btn-sm btn-secondary" onclick="verPedido(${pedido.id})">Detalles</button>
+            <button class="btn btn-sm btn-info" onclick="verDetallesEnvio(${pedido.id})">📦</button>
           </td>
         </tr>
       `).join('');
+    }
+
+    // 🔥 NUEVO: Ver detalles de envío del pedido
+    function verDetallesEnvio(id) {
+      const pedido = pedidos.find(p => p.id === id);
+      if (pedido) {
+        const configEnvio = JSON.parse(localStorage.getItem('configEnvioPuntoAlmacen')) || CONFIG_ENVIO;
+        const aplicaEnvioGratis = pedido.subtotal >= configEnvio.MINIMO_ENVIO_GRATIS;
+        
+        let mensaje = `📦 Detalles de Envío - Pedido #${pedido.id}\n\n`;
+        mensaje += `Subtotal: $${pedido.subtotal}\n`;
+        mensaje += `Envío: ${pedido.envio === 0 ? 'GRATIS' : `$${pedido.envio}`}\n`;
+        mensaje += `Total: $${pedido.total}\n\n`;
+        
+        if (aplicaEnvioGratis) {
+          mensaje += `✅ Este pedido aplica para ENVÍO GRATIS\n`;
+          mensaje += `(Mínimo: $${configEnvio.MINIMO_ENVIO_GRATIS})`;
+        } else {
+          const faltante = configEnvio.MINIMO_ENVIO_GRATIS - pedido.subtotal;
+          mensaje += `📏 Faltan $${faltante} para envío gratis\n`;
+          mensaje += `(Mínimo: $${configEnvio.MINIMO_ENVIO_GRATIS})`;
+        }
+        
+        alert(mensaje);
+      }
     }
 
     // Funciones auxiliares
@@ -1287,7 +1377,20 @@
     function verPedido(id) {
       const pedido = pedidos.find(p => p.id === id);
       if (pedido) {
-        alert(`Detalles del Pedido #${pedido.id}\nCliente: ${pedido.cliente}\nTotal: $${pedido.total}\nEstado: ${pedido.estado}`);
+        let mensaje = `🛍️ Detalles del Pedido #${pedido.id}\n\n`;
+        mensaje += `👤 Cliente: ${pedido.cliente}\n`;
+        mensaje += `📞 Teléfono: ${pedido.telefono}\n\n`;
+        mensaje += `📦 Productos:\n`;
+        pedido.productos.forEach(p => {
+          mensaje += `   • ${p.nombre} x${p.cantidad} - $${p.precio * p.cantidad}\n`;
+        });
+        mensaje += `\n💰 Subtotal: $${pedido.subtotal}\n`;
+        mensaje += `🚚 Envío: ${pedido.envio === 0 ? 'GRATIS' : `$${pedido.envio}`}\n`;
+        mensaje += `💵 Total: $${pedido.total}\n\n`;
+        mensaje += `📅 Fecha: ${pedido.fecha}\n`;
+        mensaje += `📋 Estado: ${pedido.estado}`;
+        
+        alert(mensaje);
       }
     }
 
@@ -1341,7 +1444,11 @@
     // Configuración
     document.getElementById('form-configuracion').addEventListener('submit', function(e) {
       e.preventDefault();
-      alert('✅ Configuración guardada correctamente');
+      
+      // Guardar configuración de envío
+      const configEnvio = guardarConfiguracionEnvio();
+      
+      alert(`✅ Configuración guardada correctamente\n\n📦 Configuración de envío:\n• Envío gratis a partir de: $${configEnvio.MINIMO_ENVIO_GRATIS}\n• Costo de envío normal: $${configEnvio.COSTO_ENVIO_NORMAL}`);
     });
   </script>
 </body>
