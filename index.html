@@ -6,6 +6,10 @@
   <meta name="description" content="Tienda de almacén, indumentaria y electrodomésticos. Hacé tu pedido por WhatsApp y te lo llevamos a domicilio.">
   <meta name="keywords" content="almacén, tienda, electrodomésticos, indumentaria, compras, WhatsApp, delivery">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  
+  <!-- SDK de Parse para Back4app -->
+  <script src="https://unpkg.com/parse/dist/parse.min.js"></script>
+  
   <style>
     /* ESTILOS GENERALES */
     * {
@@ -282,10 +286,9 @@
       margin-bottom: 15px;
     }
 
-    /* 🔥 MODIFICACIÓN: Imágenes más altas que anchas */
     .producto-imagen img {
       width: 100%;
-      height: 250px; /* Aumenté la altura de 200px a 250px */
+      height: 250px;
       object-fit: cover;
       border-radius: 10px;
     }
@@ -594,9 +597,8 @@
         gap: 15px;
       }
 
-      /* 🔥 MODIFICACIÓN: Ajuste responsive para imágenes más altas */
       .producto-imagen img {
-        height: 220px; /* Ajuste para móviles */
+        height: 220px;
       }
 
       .btn-admin, .carrito-flotante {
@@ -864,6 +866,55 @@
 
 <script>
   // =============================================
+  // CONFIGURACIÓN PARSE/BACK4APP
+  // =============================================
+
+  // Inicializar Parse con tus credenciales de Back4app [citation:1][citation:10]
+  Parse.initialize("sbbQLlkupAVhCVM3ZYz29GD18w4PeZa9em3brji9", "yLu8MFWZbeBVn1tTIBIUWXECaVLG81531xWul4Tk");
+  Parse.serverURL = 'https://parseapi.back4app.com/';
+
+  // =============================================
+  // MODELOS DE DATOS PARA BACK4APP
+  // =============================================
+
+  // Clase Producto
+  class Producto extends Parse.Object {
+    constructor() {
+      super('Producto');
+    }
+    
+    static async obtenerTodos() {
+      const query = new Parse.Query(Producto);
+      query.equalTo('activo', true);
+      query.descending('createdAt');
+      try {
+        return await query.find();
+      } catch (error) {
+        console.error('Error obteniendo productos:', error);
+        return [];
+      }
+    }
+  }
+
+  // Clase Configuracion
+  class Configuracion extends Parse.Object {
+    constructor() {
+      super('Configuracion');
+    }
+    
+    static async obtener() {
+      const query = new Parse.Query(Configuracion);
+      try {
+        const configs = await query.find();
+        return configs.length > 0 ? configs[0] : null;
+      } catch (error) {
+        console.error('Error obteniendo configuración:', error);
+        return null;
+      }
+    }
+  }
+
+  // =============================================
   // SISTEMA MEJORADO DE CARRITO CON ENVÍO GRATIS
   // =============================================
 
@@ -872,16 +923,33 @@
       this.carrito = this.cargarCarrito();
       this.COSTO_ENVIO_NORMAL = 800;
       this.MINIMO_ENVIO_GRATIS = 10000;
+      this.configTienda = {};
       
-      // Cargar configuración desde localStorage
-      this.cargarConfiguracionEnvio();
+      this.cargarConfiguracion();
     }
 
-    cargarConfiguracionEnvio() {
-      const configEnvio = JSON.parse(localStorage.getItem('configEnvioPuntoAlmacen'));
-      if (configEnvio) {
-        this.COSTO_ENVIO_NORMAL = configEnvio.COSTO_ENVIO_NORMAL || 800;
-        this.MINIMO_ENVIO_GRATIS = configEnvio.MINIMO_ENVIO_GRATIS || 10000;
+    async cargarConfiguracion() {
+      try {
+        const config = await Configuracion.obtener();
+        if (config) {
+          this.configTienda = {
+            nombre: config.get('nombreTienda') || 'PuntoAlmacen',
+            whatsapp: config.get('whatsapp') || '5493624840349',
+            direccion: config.get('direccion') || 'Calle Falsa 123, Ciudad',
+            horarios: config.get('horarios') || 'Lunes a Viernes 9-18 hs'
+          };
+          
+          // Actualizar configuración de envío
+          const costoEnvio = config.get('costoEnvio');
+          const minimoEnvioGratis = config.get('minimoEnvioGratis');
+          
+          if (costoEnvio) this.COSTO_ENVIO_NORMAL = costoEnvio;
+          if (minimoEnvioGratis) this.MINIMO_ENVIO_GRATIS = minimoEnvioGratis;
+          
+          this.actualizarConfiguracionUI();
+        }
+      } catch (error) {
+        console.error('Error cargando configuración:', error);
       }
     }
 
@@ -958,7 +1026,6 @@
       return this.carrito.reduce((total, item) => total + item.cantidad, 0);
     }
 
-    // 🔥 NUEVO: Calcular costo de envío
     getCostoEnvio() {
       const subtotal = this.getTotal();
       
@@ -968,12 +1035,10 @@
       return this.COSTO_ENVIO_NORMAL;
     }
 
-    // 🔥 NUEVO: Obtener total con envío
     getTotalConEnvio() {
       return this.getTotal() + this.getCostoEnvio();
     }
 
-    // 🔥 NUEVO: Calcular cuánto falta para envío gratis
     getFaltanteEnvioGratis() {
       const subtotal = this.getTotal();
       if (subtotal >= this.MINIMO_ENVIO_GRATIS) {
@@ -982,9 +1047,42 @@
       return this.MINIMO_ENVIO_GRATIS - subtotal;
     }
 
-    // 🔥 NUEVO: Verificar si aplica envío gratis
     aplicaEnvioGratis() {
       return this.getTotal() >= this.MINIMO_ENVIO_GRATIS;
+    }
+
+    actualizarConfiguracionUI() {
+      // Actualizar información de la tienda
+      if (this.configTienda.nombre) {
+        const logoText = document.querySelector('.logo-text');
+        if (logoText) logoText.textContent = this.configTienda.nombre;
+      }
+      
+      if (this.configTienda.horarios) {
+        const footerInfo = document.getElementById('footer-info');
+        if (footerInfo) {
+          footerInfo.textContent = `© 2025 ${this.configTienda.nombre} – Horarios: ${this.configTienda.horarios}`;
+        }
+      }
+      
+      if (this.configTienda.direccion && this.configTienda.whatsapp) {
+        const footerContacto = document.getElementById('footer-contacto');
+        if (footerContacto) {
+          footerContacto.innerHTML = `📍 ${this.configTienda.direccion} – <a href="https://wa.me/${this.configTienda.whatsapp}">WhatsApp: ${this.configTienda.whatsapp}</a>`;
+        }
+      }
+      
+      // Actualizar enlaces de WhatsApp
+      this.actualizarEnlacesWhatsApp();
+    }
+
+    actualizarEnlacesWhatsApp() {
+      const whatsapp = this.configTienda.whatsapp || '5493624840349';
+      const enlaces = document.querySelectorAll('a[href*="wa.me"]');
+      
+      enlaces.forEach(enlace => {
+        enlace.href = enlace.href.replace(/wa\.me\/\d+/, `wa.me/${whatsapp}`);
+      });
     }
 
     actualizarUI() {
@@ -1003,7 +1101,6 @@
       this.actualizarListaCarrito();
     }
 
-    // 🔥 NUEVO: Actualizar la interfaz de envío
     actualizarDisplayEnvio() {
       const envioElement = document.getElementById('costo-envio');
       const envioGratisElement = document.getElementById('envio-gratis-msg');
@@ -1015,17 +1112,14 @@
       const envio = this.getCostoEnvio();
       const totalConEnvio = this.getTotalConEnvio();
 
-      // Mostrar/ocultar sección de totales
       if (cartTotals) {
         cartTotals.style.display = this.carrito.length > 0 ? 'block' : 'none';
       }
 
-      // Actualizar subtotal
       if (subtotalElement) {
         subtotalElement.textContent = `$${subtotal}`;
       }
 
-      // Actualizar envío
       if (envioElement) {
         if (envio === 0 && subtotal > 0) {
           envioElement.textContent = 'GRATIS';
@@ -1036,7 +1130,6 @@
         }
       }
 
-      // Actualizar mensaje de envío gratis
       if (envioGratisElement) {
         const faltante = this.getFaltanteEnvioGratis();
         if (faltante > 0 && subtotal > 0) {
@@ -1047,13 +1140,11 @@
         }
       }
 
-      // Actualizar total
       if (totalElement) {
         totalElement.textContent = `$${totalConEnvio}`;
       }
     }
 
-    // 🔥 NUEVO: Actualizar lista de productos en el modal
     actualizarListaCarrito() {
       const listaCarrito = document.getElementById('listaCarrito');
       if (!listaCarrito) return;
@@ -1077,19 +1168,17 @@
             <p class="precio">$${item.precio} c/u</p>
           </div>
           <div class="producto-cantidad">
-            <button class="btn-cantidad" onclick="cart.actualizarCantidad(${item.id}, ${item.cantidad - 1})">-</button>
+            <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad - 1})">-</button>
             <span style="min-width: 30px; text-align: center;">${item.cantidad}</span>
-            <button class="btn-cantidad" onclick="cart.actualizarCantidad(${item.id}, ${item.cantidad + 1})">+</button>
-            <button class="btn-cantidad" onclick="cart.eliminarProducto(${item.id})" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
+            <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad + 1})">+</button>
+            <button class="btn-cantidad" onclick="cart.eliminarProducto('${item.id}')" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
           </div>
           <div class="precio">$${item.precio * item.cantidad}</div>
         </div>
       `).join('');
     }
 
-    // 🔥 NUEVO: Mostrar notificaciones
     mostrarNotificacion(mensaje) {
-      // Crear notificación si no existe
       let notificacion = document.getElementById('notificacion-carrito');
       if (!notificacion) {
         notificacion = document.createElement('div');
@@ -1115,13 +1204,11 @@
       notificacion.textContent = mensaje;
       notificacion.style.transform = 'translateX(0)';
 
-      // Ocultar después de 3 segundos
       setTimeout(() => {
         notificacion.style.transform = 'translateX(400px)';
       }, 3000);
     }
 
-    // 🔥 NUEVO: Generar mensaje de WhatsApp con envío
     generarMensajeWhatsApp(infoCliente = {}) {
       const subtotal = this.getTotal();
       const envio = this.getCostoEnvio();
@@ -1143,13 +1230,11 @@
       
       mensaje += `%0A💵 Total: $${total}`;
       
-      // Mensaje de envío gratis
       if (subtotal < this.MINIMO_ENVIO_GRATIS && subtotal > 0) {
         const faltante = this.getFaltanteEnvioGratis();
         mensaje += `%0A%0A🎉 ¡Faltan $${faltante} para ENVÍO GRATIS!`;
       }
       
-      // Información del cliente
       if (infoCliente.nombre) {
         mensaje += `%0A%0A👤 Cliente: ${infoCliente.nombre}`;
       }
@@ -1167,29 +1252,23 @@
       return mensaje;
     }
 
-    // 🔥 NUEVO: Enviar pedido por WhatsApp
     enviarPorWhatsApp() {
       const modalCliente = document.getElementById('modalInfoCliente');
       if (modalCliente) {
-        // Mostrar modal para datos del cliente primero
         modalCliente.style.display = 'flex';
       } else {
-        // Enviar directamente si no hay modal
         const mensaje = this.generarMensajeWhatsApp();
-        const config = JSON.parse(localStorage.getItem('configuracionPuntoAlmacen')) || {};
-        const telefono = config.whatsapp || '5493624840349';
+        const telefono = this.configTienda.whatsapp || '5493624840349';
         const whatsappURL = `https://wa.me/${telefono}?text=${mensaje}`;
         window.open(whatsappURL, '_blank');
       }
     }
 
-    // 🔥 NUEVO: Confirmar pedido con datos del cliente
     confirmarPedidoConCliente() {
       const nombre = document.getElementById('clienteNombre')?.value || '';
       const telefono = document.getElementById('clienteTelefono')?.value || '';
       const direccion = document.getElementById('clienteDireccion')?.value || '';
       
-      // Validar campos requeridos
       if (!nombre || !telefono || !direccion) {
         this.mostrarNotificacion('❌ Por favor completa todos los campos');
         return;
@@ -1197,21 +1276,14 @@
       
       const infoCliente = { nombre, telefono, direccion };
       const mensaje = this.generarMensajeWhatsApp(infoCliente);
-      const config = JSON.parse(localStorage.getItem('configuracionPuntoAlmacen')) || {};
-      const telefonoWhatsApp = config.whatsapp || '5493624840349';
+      const telefonoWhatsApp = this.configTienda.whatsapp || '5493624840349';
       const whatsappURL = `https://wa.me/${telefonoWhatsApp}?text=${mensaje}`;
       
-      // Cerrar modal
       this.cerrarModal('modalInfoCliente');
-      
-      // Abrir WhatsApp
       window.open(whatsappURL, '_blank');
-      
-      // Limpiar carrito después de enviar
       this.limpiarCarrito();
     }
 
-    // 🔥 NUEVO: Cerrar modal
     cerrarModal(modalId) {
       const modal = document.getElementById(modalId);
       if (modal) {
@@ -1219,7 +1291,6 @@
       }
     }
 
-    // 🔥 NUEVO: Abrir carrito
     abrirCarrito() {
       const modal = document.getElementById('modalCarrito');
       if (modal) {
@@ -1230,11 +1301,283 @@
   }
 
   // =============================================
-  // INICIALIZACIÓN DEL SISTEMA
+  // SISTEMA PRINCIPAL DE LA TIENDA
   // =============================================
 
-  // Instancia global del carrito
-  const cart = new CartService();
+  class PuntoAlmacenApp {
+    constructor() {
+      this.productos = [];
+      this.filtroActual = 'todos';
+      this.terminoBusqueda = '';
+      this.cart = new CartService();
+    }
+
+    async init() {
+      try {
+        console.log('🛍️ Inicializando PuntoAlmacen App...');
+        await this.cargarProductos();
+        this.inicializarEventos();
+        console.log('✅ PuntoAlmacen App inicializada correctamente');
+      } catch (error) {
+        console.error('❌ Error inicializando app:', error);
+      }
+    }
+
+    async cargarProductos() {
+      try {
+        this.mostrarLoading(true);
+        
+        // Cargar productos desde Back4app
+        const productosBack4app = await Producto.obtenerTodos();
+        
+        if (productosBack4app.length > 0) {
+          this.productos = productosBack4app.map(producto => ({
+            id: producto.id,
+            nombre: producto.get('nombre'),
+            precio: producto.get('precio'),
+            categoria: producto.get('categoria'),
+            imagen: producto.get('imagen') || 'https://via.placeholder.com/300x250/25D366/ffffff?text=Producto',
+            destacado: producto.get('destacado') || false,
+            descripcion: producto.get('descripcion') || '',
+            talles: producto.get('talles') || null,
+            garantia: producto.get('garantia') || null,
+            activo: producto.get('activo') !== false
+          }));
+        } else {
+          // Usar productos por defecto si no hay en Back4app
+          this.productos = [
+            { id: '1', nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Arroz", destacado: true, activo: true },
+            { id: '2', nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Fideos", activo: true },
+            { id: '3', nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Aceite", destacado: true, activo: true }
+          ];
+        }
+
+        this.renderizarProductos();
+        this.mostrarLoading(false);
+        
+      } catch (error) {
+        console.error('Error cargando productos:', error);
+        this.mostrarLoading(false);
+        this.mostrarError('Error cargando productos. Intenta recargar la página.');
+      }
+    }
+
+    renderizarProductos() {
+      const secciones = {
+        almacen: document.getElementById('almacen'),
+        indumentaria: document.getElementById('indumentaria'),
+        electro: document.getElementById('electro'),
+        libreria: document.getElementById('libreria')
+      };
+
+      // Limpiar secciones
+      Object.values(secciones).forEach(seccion => {
+        if (seccion) seccion.innerHTML = '';
+      });
+
+      // Filtrar productos
+      let productosFiltrados = this.productos.filter(p => p.activo !== false);
+      
+      if (this.terminoBusqueda) {
+        productosFiltrados = productosFiltrados.filter(producto =>
+          producto.nombre.toLowerCase().includes(this.terminoBusqueda.toLowerCase()) ||
+          (producto.descripcion && producto.descripcion.toLowerCase().includes(this.terminoBusqueda.toLowerCase()))
+        );
+      }
+
+      if (this.filtroActual !== 'todos') {
+        productosFiltrados = productosFiltrados.filter(producto => 
+          producto.categoria === this.filtroActual
+        );
+      }
+
+      // Ocultar todas las secciones primero
+      document.querySelectorAll('.titulo-seccion').forEach(titulo => {
+        titulo.style.display = 'none';
+      });
+      document.querySelectorAll('.grilla').forEach(grilla => {
+        grilla.style.display = 'none';
+      });
+
+      // Agrupar por categoría y renderizar
+      const productosPorCategoria = {};
+      productosFiltrados.forEach(producto => {
+        if (!productosPorCategoria[producto.categoria]) {
+          productosPorCategoria[producto.categoria] = [];
+        }
+        productosPorCategoria[producto.categoria].push(producto);
+      });
+
+      Object.keys(productosPorCategoria).forEach(categoria => {
+        const seccion = secciones[categoria];
+        if (seccion) {
+          seccion.style.display = 'grid';
+          if (seccion.previousElementSibling) {
+            seccion.previousElementSibling.style.display = 'block';
+          }
+          
+          productosPorCategoria[categoria].forEach(producto => {
+            const productoHTML = this.crearProductoHTML(producto);
+            seccion.innerHTML += productoHTML;
+          });
+        }
+      });
+
+      // Mostrar mensaje si no hay productos
+      if (productosFiltrados.length === 0) {
+        this.mostrarMensajeSinProductos();
+      }
+
+      // Agregar eventos a los botones
+      this.inicializarEventosProductos();
+    }
+
+    crearProductoHTML(producto) {
+      return `
+        <div class="producto-card">
+          <div class="producto-imagen">
+            <img src="${producto.imagen}" alt="${producto.nombre}" 
+                 onerror="this.src='https://via.placeholder.com/300x250/25D366/ffffff?text=Producto'" 
+                 loading="lazy">
+            ${producto.destacado ? '<span class="badge-oferta">🔥 OFERTA</span>' : ''}
+          </div>
+          <h3>${producto.nombre}</h3>
+          ${producto.talles && producto.talles.length > 0 ? 
+            `<p><small>Talles: ${producto.talles.join(', ')}</small></p>` : ''}
+          ${producto.garantia ? `<p><small>🛡️ Garantía: ${producto.garantia}</small></p>` : ''}
+          ${producto.descripcion ? `<p><small>${producto.descripcion}</small></p>` : ''}
+          <div class="precio">$${producto.precio}</div>
+          <button class="btn-agregar" data-id="${producto.id}">
+            🛒 Agregar al carrito
+          </button>
+        </div>
+      `;
+    }
+
+    inicializarEventosProductos() {
+      document.querySelectorAll('.btn-agregar').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const idProducto = e.target.dataset.id;
+          const producto = this.productos.find(p => p.id === idProducto);
+          if (producto) {
+            this.cart.agregarProducto(producto);
+          }
+        });
+      });
+    }
+
+    inicializarEventos() {
+      // Búsqueda
+      const busqueda = document.getElementById('busqueda');
+      if (busqueda) {
+        busqueda.addEventListener('input', (e) => {
+          this.terminoBusqueda = e.target.value;
+          this.renderizarProductos();
+        });
+      }
+
+      // Filtros
+      const filtros = document.querySelectorAll('.btn-filtro');
+      filtros.forEach(filtro => {
+        filtro.addEventListener('click', () => {
+          filtros.forEach(f => f.classList.remove('active'));
+          filtro.classList.add('active');
+          this.filtroActual = filtro.dataset.categoria;
+          this.renderizarProductos();
+        });
+      });
+
+      // Botón admin
+      const btnAdmin = document.getElementById('btnAdmin');
+      if (btnAdmin) {
+        btnAdmin.addEventListener('click', () => {
+          window.location.href = 'admin.html';
+        });
+      }
+
+      // Eventos del carrito
+      const carritoBtn = document.getElementById('carritoBtn');
+      const cerrarModalBtn = document.getElementById('cerrarModal');
+      const btnEnviarWhatsApp = document.getElementById('btnEnviarWhatsApp');
+      
+      if (carritoBtn) {
+        carritoBtn.addEventListener('click', () => this.cart.abrirCarrito());
+      }
+      
+      if (cerrarModalBtn) {
+        cerrarModalBtn.addEventListener('click', () => this.cart.cerrarModal('modalCarrito'));
+      }
+      
+      if (btnEnviarWhatsApp) {
+        btnEnviarWhatsApp.addEventListener('click', () => this.cart.enviarPorWhatsApp());
+      }
+
+      // Cerrar modales al hacer clic fuera
+      const modalCarrito = document.getElementById('modalCarrito');
+      const modalCliente = document.getElementById('modalInfoCliente');
+      
+      [modalCarrito, modalCliente].forEach(modal => {
+        if (modal) {
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+              this.cart.cerrarModal(modal.id);
+            }
+          });
+        }
+      });
+    }
+
+    mostrarLoading(mostrar) {
+      const loadings = document.querySelectorAll('.loading');
+      loadings.forEach(loading => {
+        loading.style.display = mostrar ? 'block' : 'none';
+      });
+    }
+
+    mostrarError(mensaje) {
+      this.mostrarNotificacion(mensaje, 'error');
+    }
+
+    mostrarNotificacion(mensaje, tipo = 'success') {
+      const notificacion = document.createElement('div');
+      notificacion.className = 'notificacion';
+      notificacion.textContent = mensaje;
+      
+      if (tipo === 'error') {
+        notificacion.style.background = '#ff4444';
+      }
+      
+      document.body.appendChild(notificacion);
+
+      setTimeout(() => {
+        if (document.body.contains(notificacion)) {
+          document.body.removeChild(notificacion);
+        }
+      }, 3000);
+    }
+
+    mostrarMensajeSinProductos() {
+      const container = document.querySelector('.container');
+      const mensajeExistente = document.querySelector('.sin-productos-global');
+      
+      if (!mensajeExistente) {
+        const mensaje = document.createElement('div');
+        mensaje.className = 'sin-productos sin-productos-global';
+        mensaje.innerHTML = `
+          <h3>😔 No se encontraron productos</h3>
+          <p>Intenta con otros términos de búsqueda o cambia de categoría</p>
+          <button class="btn-agregar" onclick="app.cargarProductos()" style="margin-top: 15px; max-width: 200px;">
+            Reintentar carga
+          </button>
+        `;
+        container.appendChild(mensaje);
+      }
+    }
+  }
+
+  // =============================================
+  // INICIALIZACIÓN GLOBAL
+  // =============================================
 
   // Función global para cerrar modales
   function cerrarModal(modalId) {
@@ -1246,342 +1589,15 @@
 
   // Función global para abrir carrito
   function abrirCarrito() {
-    cart.abrirCarrito();
-  }
-
-  // Inicialización cuando el DOM esté listo
-  document.addEventListener('DOMContentLoaded', function() {
-    // Inicializar eventos del carrito
-    const carritoBtn = document.getElementById('carritoBtn');
-    const cerrarModalBtn = document.getElementById('cerrarModal');
-    const btnEnviarWhatsApp = document.getElementById('btnEnviarWhatsApp');
-    
-    if (carritoBtn) {
-      carritoBtn.addEventListener('click', () => cart.abrirCarrito());
-    }
-    
-    if (cerrarModalBtn) {
-      cerrarModalBtn.addEventListener('click', () => cart.cerrarModal('modalCarrito'));
-    }
-    
-    if (btnEnviarWhatsApp) {
-      btnEnviarWhatsApp.addEventListener('click', () => cart.enviarPorWhatsApp());
-    }
-    
-    // Cerrar modal al hacer clic fuera
-    const modalCarrito = document.getElementById('modalCarrito');
-    if (modalCarrito) {
-      modalCarrito.addEventListener('click', (e) => {
-        if (e.target === modalCarrito) {
-          cart.cerrarModal('modalCarrito');
-        }
-      });
-    }
-    
-    const modalCliente = document.getElementById('modalInfoCliente');
-    if (modalCliente) {
-      modalCliente.addEventListener('click', (e) => {
-        if (e.target === modalCliente) {
-          cart.cerrarModal('modalInfoCliente');
-        }
-      });
-    }
-    
-    // Actualizar UI inicial
-    cart.actualizarUI();
-    
-    console.log('🛒 Sistema de carrito con envío gratis inicializado');
-  });
-
-  // =============================================
-  // SISTEMA EXISTENTE DE LA TIENDA (COMPATIBLE)
-  // =============================================
-
-  // ... (el resto del código existente de la tienda permanece igual)
-  // Solo se reemplazó el sistema de carrito anterior por la nueva clase CartService
-
-  // Constantes para claves de localStorage (COMPATIBLES CON ADMIN)
-  const STORAGE_KEYS = {
-    PRODUCTOS: 'productosPuntoAlmacen',
-    CARRITO: 'carritoPuntoAlmacen',
-    BANNER_OFERTA: 'bannerOfertaPuntoAlmacen',
-    BANNER_RIFAS: 'bannerRifasPuntoAlmacen',
-    PEDIDOS: 'pedidosPuntoAlmacen',
-    CONFIG: 'configuracionPuntoAlmacen'
-  };
-
-  // Productos por defecto (solo se usan si no hay datos en localStorage)
-  const PRODUCTOS_POR_DEFECTO = [
-    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Arroz", destacado: true },
-    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Fideos" },
-    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Aceite", destacado: true },
-    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Harina" },
-    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Remera", talles: ["S", "M", "L", "XL"] },
-    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Pantalon", talles: ["38", "40", "42", "44"] },
-    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Buzo", talles: ["S", "M", "L"] },
-    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Licuadora", garantia: "12 meses" },
-    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Tostadora", garantia: "6 meses" },
-    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Ventilador", garantia: "12 meses" },
-    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Cuaderno" },
-    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Lapices" },
-    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Mochila", destacado: true }
-  ];
-
-  // Cargar productos desde localStorage o usar datos por defecto
-  let productos = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS) || PRODUCTOS_POR_DEFECTO;
-
-  // Elementos del DOM
-  const elementos = {
-    busqueda: document.getElementById('busqueda'),
-    filtros: document.querySelectorAll('.btn-filtro'),
-    btnAdmin: document.getElementById('btnAdmin'),
-    bannerOferta: document.getElementById('banner-oferta'),
-    bannerRifasContainer: document.getElementById('banner-rifas-container'),
-    bannerRifasImg: document.getElementById('banner-rifas-img'),
-    bannerRifasTitulo: document.getElementById('banner-rifas-titulo'),
-    bannerRifasDescripcion: document.getElementById('banner-rifas-descripcion'),
-    footerInfo: document.getElementById('footer-info'),
-    footerContacto: document.getElementById('footer-contacto')
-  };
-
-  // Inicialización de la tienda
-  function inicializarTienda() {
-    console.log('🛍️ PuntoAlmacen - Sistema inicializado');
-    
-    // Cargar elementos de la tienda
-    cargarBannerOfertaPersonalizado();
-    cargarBannerRifasPersonalizado();
-    cargarConfiguracionTienda();
-    cargarProductos();
-    inicializarEventosTienda();
-    
-    // Sincronización inicial con admin
-    setTimeout(() => {
-      sincronizarConAdmin();
-    }, 500);
-  }
-
-  // Función para cargar desde localStorage
-  function cargarDesdeLocalStorage(clave) {
-    try {
-      const datos = localStorage.getItem(clave);
-      return datos ? JSON.parse(datos) : null;
-    } catch (error) {
-      console.error(`❌ Error al cargar ${clave}:`, error);
-      return null;
+    if (window.app && window.app.cart) {
+      window.app.cart.abrirCarrito();
     }
   }
 
-  // Cargar banner de oferta personalizado
-  function cargarBannerOfertaPersonalizado() {
-    const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_OFERTA);
-    
-    if (bannerData && bannerData.imagen) {
-      elementos.bannerOferta.src = bannerData.imagen;
-      console.log('✅ Banner de oferta personalizado cargado desde admin');
-    }
-  }
-
-  // Cargar banner de rifas personalizado
-  function cargarBannerRifasPersonalizado() {
-    const bannerData = cargarDesdeLocalStorage(STORAGE_KEYS.BANNER_RIFAS);
-    
-    if (bannerData && bannerData.imagen) {
-      elementos.bannerRifasImg.src = bannerData.imagen;
-      elementos.bannerRifasContainer.style.display = 'block';
-      
-      if (bannerData.titulo) {
-        elementos.bannerRifasTitulo.textContent = bannerData.titulo;
-      }
-      if (bannerData.descripcion) {
-        elementos.bannerRifasDescripcion.textContent = bannerData.descripcion;
-      }
-    }
-  }
-
-  // Cargar configuración de la tienda
-  function cargarConfiguracionTienda() {
-    const config = cargarDesdeLocalStorage(STORAGE_KEYS.CONFIG);
-    
-    if (config) {
-      if (config.whatsapp) {
-        actualizarContactoWhatsApp(config.whatsapp);
-      }
-      if (config.nombre) {
-        document.querySelector('.logo-text').textContent = config.nombre;
-      }
-      if (config.horarios) {
-        elementos.footerInfo.textContent = `© 2025 PuntoAlmacen – Horarios: ${config.horarios}`;
-      }
-      if (config.direccion) {
-        elementos.footerContacto.innerHTML = `📍 ${config.direccion} – <a href="https://wa.me/${config.whatsapp}">WhatsApp: ${config.whatsapp}</a>`;
-      }
-    }
-  }
-
-  // Actualizar contacto de WhatsApp
-  function actualizarContactoWhatsApp(telefono) {
-    const enlacesWhatsApp = document.querySelectorAll('a[href*="wa.me"]');
-    
-    enlacesWhatsApp.forEach(enlace => {
-      const hrefActual = enlace.href;
-      const nuevoHref = hrefActual.replace(/wa\.me\/\d+/, `wa.me/${telefono}`);
-      enlace.href = nuevoHref;
-    });
-  }
-
-  // Cargar productos en las secciones
-  function cargarProductos() {
-    const secciones = {
-      almacen: document.getElementById('almacen'),
-      indumentaria: document.getElementById('indumentaria'),
-      electro: document.getElementById('electro'),
-      libreria: document.getElementById('libreria')
-    };
-
-    // Limpiar secciones
-    Object.values(secciones).forEach(seccion => {
-      if (seccion) seccion.innerHTML = '';
-    });
-
-    // Filtrar productos según búsqueda
-    const terminoBusqueda = elementos.busqueda.value.toLowerCase();
-    let productosFiltrados = productos;
-    
-    if (terminoBusqueda) {
-      productosFiltrados = productos.filter(producto => 
-        producto.nombre.toLowerCase().includes(terminoBusqueda)
-      );
-    }
-
-    // Filtrar por categoría activa
-    const categoriaActiva = document.querySelector('.btn-filtro.active')?.dataset.categoria;
-    if (categoriaActiva && categoriaActiva !== 'todos') {
-      productosFiltrados = productosFiltrados.filter(producto => 
-        producto.categoria === categoriaActiva
-      );
-    }
-
-    // Mostrar u ocultar secciones según filtros
-    document.querySelectorAll('.titulo-seccion').forEach(titulo => {
-      titulo.style.display = 'none';
-    });
-    
-    document.querySelectorAll('.grilla').forEach(grilla => {
-      grilla.style.display = 'none';
-    });
-
-    // Agregar productos a las secciones
-    productosFiltrados.forEach(producto => {
-      const seccion = secciones[producto.categoria];
-      if (seccion) {
-        seccion.style.display = 'grid';
-        seccion.previousElementSibling.style.display = 'block';
-        
-        const productoElement = document.createElement('div');
-        productoElement.className = 'producto-card';
-        productoElement.innerHTML = `
-          <div class="producto-imagen">
-            <img src="${producto.imagen}" alt="${producto.nombre}" 
-                 onerror="this.src='https://via.placeholder.com/300x250/25D366/ffffff?text=Producto'">
-            ${producto.destacado ? '<span class="badge-oferta">🔥 OFERTA</span>' : ''}
-          </div>
-          <h3>${producto.nombre}</h3>
-          ${producto.talles ? `<p><small>Talles: ${producto.talles.join(', ')}</small></p>` : ''}
-          ${producto.garantia ? `<p><small>🛡️ Garantía: ${producto.garantia}</small></p>` : ''}
-          <div class="precio">$${producto.precio}</div>
-          <button class="btn-agregar" data-id="${producto.id}">
-            🛒 Agregar al carrito
-          </button>
-        `;
-        seccion.appendChild(productoElement);
-      }
-    });
-
-    // Si no hay productos, mostrar mensaje
-    if (productosFiltrados.length === 0) {
-      const mensaje = document.createElement('div');
-      mensaje.className = 'sin-productos';
-      mensaje.innerHTML = `
-        <h3>😔 No se encontraron productos</h3>
-        <p>Intenta con otros términos de búsqueda o cambia de categoría</p>
-        <button class="btn-agregar" onclick="limpiarBusqueda()" style="margin-top: 15px; max-width: 200px;">Limpiar búsqueda</button>
-      `;
-      document.querySelector('.container').appendChild(mensaje);
-    }
-
-    // Agregar eventos a los botones de agregar al carrito
-    document.querySelectorAll('.btn-agregar').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const idProducto = parseInt(e.target.dataset.id);
-        const producto = productos.find(p => p.id === idProducto);
-        if (producto) {
-          cart.agregarProducto(producto);
-        }
-      });
-    });
-  }
-
-  // Limpiar búsqueda
-  function limpiarBusqueda() {
-    elementos.busqueda.value = '';
-    elementos.filtros.forEach(f => f.classList.remove('active'));
-    const filtroTodos = document.querySelector('.btn-filtro[data-categoria="todos"]');
-    if (filtroTodos) filtroTodos.classList.add('active');
-    cargarProductos();
-  }
-
-  // Inicializar eventos de la tienda
-  function inicializarEventosTienda() {
-    // Búsqueda
-    if (elementos.busqueda) {
-      elementos.busqueda.addEventListener('input', cargarProductos);
-    }
-
-    // Filtros
-    if (elementos.filtros) {
-      elementos.filtros.forEach(filtro => {
-        filtro.addEventListener('click', () => {
-          elementos.filtros.forEach(f => f.classList.remove('active'));
-          filtro.classList.add('active');
-          cargarProductos();
-        });
-      });
-    }
-
-    // Botón Admin
-    if (elementos.btnAdmin) {
-      elementos.btnAdmin.addEventListener('click', () => {
-        window.location.href = 'admin.html';
-      });
-    }
-  }
-
-  // Sincronizar con admin
-  function sincronizarConAdmin() {
-    const productosAdmin = cargarDesdeLocalStorage(STORAGE_KEYS.PRODUCTOS);
-    if (productosAdmin && JSON.stringify(productos) !== JSON.stringify(productosAdmin)) {
-      productos = productosAdmin;
-      cargarProductos();
-    }
-
-    cargarBannerOfertaPersonalizado();
-    cargarBannerRifasPersonalizado();
-    cargarConfiguracionTienda();
-    
-    // Actualizar configuración de envío en el carrito
-    cart.cargarConfiguracionEnvio();
-    cart.actualizarUI();
-  }
-
-  // Inicializar la tienda cuando el DOM esté listo
-  document.addEventListener('DOMContentLoaded', inicializarTienda);
-
-  // Escuchar cambios en localStorage desde otras pestañas
-  window.addEventListener('storage', function(e) {
-    if (Object.values(STORAGE_KEYS).includes(e.key)) {
-      sincronizarConAdmin();
-    }
+  // Inicializar la aplicación cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', async () => {
+    window.app = new PuntoAlmacenApp();
+    await window.app.init();
   });
 
 </script>
