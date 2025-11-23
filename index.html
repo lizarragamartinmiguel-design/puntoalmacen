@@ -282,9 +282,10 @@
       margin-bottom: 15px;
     }
 
+    /* 🔥 MODIFICACIÓN: Imágenes más altas que anchas */
     .producto-imagen img {
       width: 100%;
-      height: 200px;
+      height: 250px; /* Aumenté la altura de 200px a 250px */
       object-fit: cover;
       border-radius: 10px;
     }
@@ -591,6 +592,11 @@
       .grilla {
         grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
         gap: 15px;
+      }
+
+      /* 🔥 MODIFICACIÓN: Ajuste responsive para imágenes más altas */
+      .producto-imagen img {
+        height: 220px; /* Ajuste para móviles */
       }
 
       .btn-admin, .carrito-flotante {
@@ -1306,19 +1312,19 @@
 
   // Productos por defecto (solo se usan si no hay datos en localStorage)
   const PRODUCTOS_POR_DEFECTO = [
-    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Arroz", destacado: true },
-    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Fideos" },
-    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Aceite", destacado: true },
-    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Harina" },
-    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Remera", talles: ["S", "M", "L", "XL"] },
-    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Pantalon", talles: ["38", "40", "42", "44"] },
-    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Buzo", talles: ["S", "M", "L"] },
-    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Licuadora", garantia: "12 meses" },
-    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Tostadora", garantia: "6 meses" },
-    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Ventilador", garantia: "12 meses" },
-    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Cuaderno" },
-    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Lapices" },
-    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "https://via.placeholder.com/300x200/25D366/ffffff?text=Mochila", destacado: true }
+    { id: 1, nombre: "Arroz Largo Fino 1kg", precio: 450, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Arroz", destacado: true },
+    { id: 2, nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Fideos" },
+    { id: 3, nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Aceite", destacado: true },
+    { id: 4, nombre: "Harina 0000 1kg", precio: 280, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Harina" },
+    { id: 5, nombre: "Remera Básica Negra", precio: 2500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Remera", talles: ["S", "M", "L", "XL"] },
+    { id: 6, nombre: "Pantalón Jean Clásico", precio: 4500, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Pantalon", talles: ["38", "40", "42", "44"] },
+    { id: 7, nombre: "Buzo Canguro Algodón", precio: 5200, categoria: "indumentaria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Buzo", talles: ["S", "M", "L"] },
+    { id: 8, nombre: "Licuadora 600W", precio: 12500, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Licuadora", garantia: "12 meses" },
+    { id: 9, nombre: "Tostadora 2 Ranuras", precio: 6800, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Tostadora", garantia: "6 meses" },
+    { id: 10, nombre: "Ventilador de Pie", precio: 8900, categoria: "electro", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Ventilador", garantia: "12 meses" },
+    { id: 11, nombre: "Cuaderno Universitario", precio: 350, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Cuaderno" },
+    { id: 12, nombre: "Lápices de Colores x12", precio: 180, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Lapices" },
+    { id: 13, nombre: "Mochila Escolar", precio: 4200, categoria: "libreria", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Mochila", destacado: true }
   ];
 
   // Cargar productos desde localStorage o usar datos por defecto
@@ -1477,7 +1483,7 @@
         productoElement.innerHTML = `
           <div class="producto-imagen">
             <img src="${producto.imagen}" alt="${producto.nombre}" 
-                 onerror="this.src='https://via.placeholder.com/300x200/25D366/ffffff?text=Producto'">
+                 onerror="this.src='https://via.placeholder.com/300x250/25D366/ffffff?text=Producto'">
             ${producto.destacado ? '<span class="badge-oferta">🔥 OFERTA</span>' : ''}
           </div>
           <h3>${producto.nombre}</h3>
