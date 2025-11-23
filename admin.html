@@ -419,6 +419,31 @@
       border-radius: 5px;
     }
 
+    /* Notificaciones */
+    .notificacion {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #25D366;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      z-index: 1000;
+      animation: fadeInOut 3s ease-in-out;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .notificacion.error {
+      background: #dc3545;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; transform: translateY(-20px); }
+      20% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; transform: translateY(0); }
+      100% { opacity: 0; transform: translateY(-20px); }
+    }
+
     /* Responsive */
     @media (max-width: 768px) {
       .admin-container {
@@ -490,7 +515,6 @@
         <li data-section="productos">🛍️ Productos</li>
         <li data-section="pedidos">📦 Pedidos</li>
         <li data-section="banners">🎯 Banners</li>
-        <li data-section="categorias">📁 Categorías</li>
         <li data-section="configuracion">⚙️ Configuración</li>
       </ul>
     </div>
@@ -542,7 +566,7 @@
               </tr>
             </thead>
             <tbody id="tabla-pedidos-recientes">
-              <!-- Los pedidos se cargarán aquí -->
+              <tr><td colspan="6" style="text-align: center;">Cargando pedidos...</td></tr>
             </tbody>
           </table>
         </div>
@@ -622,7 +646,7 @@
               </tr>
             </thead>
             <tbody id="tabla-productos">
-              <!-- Los productos se cargarán aquí -->
+              <tr><td colspan="7" style="text-align: center;">Cargando productos...</td></tr>
             </tbody>
           </table>
         </div>
@@ -648,43 +672,69 @@
               </tr>
             </thead>
             <tbody id="tabla-pedidos">
-              <!-- Los pedidos se cargarán aquí -->
+              <tr><td colspan="9" style="text-align: center;">Cargando pedidos...</td></tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Sección Banners -->
+      <!-- Sección Banners - COMPLETAMENTE CORREGIDA -->
       <div id="banners" class="section">
         <!-- Gestión de Banner de Oferta -->
         <div class="banner-container">
           <h3>🎯 Gestión del Banner de Oferta</h3>
-          <p>Sube una imagen para mostrar en el banner principal de la tienda</p>
+          <p>Configura el banner principal de ofertas que aparece en la tienda</p>
           
-          <div class="file-upload" id="banner-oferta-upload">
-            <input type="file" id="banner-oferta-file" accept="image/*">
-            <label for="banner-oferta-file" class="file-upload-label">
-              📁 Hacer clic aquí para subir imagen del banner de oferta
-              <br>
-              <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x400px)</small>
-            </label>
-          </div>
-          
-          <img id="banner-oferta-preview" class="banner-preview" alt="Vista previa del banner de oferta">
-          
-          <div class="upload-status" id="banner-oferta-status"></div>
-          
-          <div class="banner-actions">
-            <button class="btn btn-primary" onclick="guardarBannerOferta()" id="btn-guardar-banner-oferta" disabled>
-              💾 Guardar Banner Oferta
-            </button>
-            <button class="btn btn-secondary" onclick="restaurarBannerOfertaDefault()">
-              🔄 Restaurar Banner Predeterminado
-            </button>
-          </div>
+          <form id="form-banner-oferta">
+            <div class="form-group">
+              <label for="banner-oferta-titulo">Título del Banner</label>
+              <input type="text" id="banner-oferta-titulo" placeholder="Ej: ¡Oferta Especial! Hasta 50% OFF">
+            </div>
+            
+            <div class="form-group">
+              <label for="banner-oferta-descripcion">Descripción</label>
+              <input type="text" id="banner-oferta-descripcion" placeholder="Ej: Descuentos increíbles esta semana">
+            </div>
+            
+            <div class="form-group">
+              <label for="banner-oferta-enlace">Enlace WhatsApp</label>
+              <input type="text" id="banner-oferta-enlace" placeholder="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día">
+            </div>
+            
+            <div class="form-group">
+              <label>Imagen del Banner</label>
+              <div class="file-upload" id="banner-oferta-upload">
+                <input type="file" id="banner-oferta-file" accept="image/*">
+                <label for="banner-oferta-file" class="file-upload-label">
+                  📁 Hacer clic aquí para subir imagen del banner de oferta
+                  <br>
+                  <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x400px)</small>
+                </label>
+              </div>
+              <img id="banner-oferta-preview" class="banner-preview" alt="Vista previa del banner de oferta">
+              <div class="upload-status" id="banner-oferta-status"></div>
+              <input type="hidden" id="banner-oferta-imagen-url">
+            </div>
+            
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="banner-oferta-activo"> 
+                ✅ Banner activo (se mostrará en la tienda)
+              </label>
+            </div>
+            
+            <div class="banner-actions">
+              <button type="submit" class="btn btn-primary" id="btn-guardar-banner-oferta">
+                💾 Guardar Banner Oferta
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="restaurarBannerOfertaDefault()">
+                🔄 Restaurar Valores Predeterminados
+              </button>
+            </div>
+          </form>
           
           <div class="banner-info">
-            <h4>📝 Banner de Oferta Actual:</h4>
+            <h4>📝 Información del Banner Actual:</h4>
             <div id="banner-oferta-actual-info">
               <em>Cargando información del banner actual...</em>
             </div>
@@ -694,77 +744,65 @@
         <!-- Gestión de Banner de Rifas -->
         <div class="banner-container">
           <h3>🎉 Gestión del Banner de Rifas</h3>
-          <p>Sube una imagen para mostrar en el banner de rifas de la tienda</p>
+          <p>Configura el banner de rifas online que aparece en la tienda</p>
           
-          <div class="file-upload" id="banner-rifas-upload">
-            <input type="file" id="banner-rifas-file" accept="image/*">
-            <label for="banner-rifas-file" class="file-upload-label">
-              📁 Hacer clic aquí para subir imagen del banner de rifas
-              <br>
-              <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x300px)</small>
-            </label>
-          </div>
-          
-          <img id="banner-rifas-preview" class="banner-preview" alt="Vista previa del banner de rifas">
-          
-          <div class="upload-status" id="banner-rifas-status"></div>
-          
-          <div class="banner-actions">
-            <button class="btn btn-warning" onclick="guardarBannerRifas()" id="btn-guardar-banner-rifas" disabled>
-              💾 Guardar Banner Rifas
-            </button>
-            <button class="btn btn-secondary" onclick="restaurarBannerRifasDefault()">
-              🔄 Restaurar Banner Predeterminado
-            </button>
-            <button class="btn btn-danger" onclick="desactivarBannerRifas()">
-              🚫 Desactivar Banner Rifas
-            </button>
-          </div>
+          <form id="form-banner-rifas">
+            <div class="form-group">
+              <label for="banner-rifas-titulo">Título del Banner</label>
+              <input type="text" id="banner-rifas-titulo" placeholder="Ej: ¡Participa en Nuestras Rifas!">
+            </div>
+            
+            <div class="form-group">
+              <label for="banner-rifas-descripcion">Descripción</label>
+              <input type="text" id="banner-rifas-descripcion" placeholder="Ej: Gana premios increíbles">
+            </div>
+            
+            <div class="form-group">
+              <label for="banner-rifas-enlace">Enlace de Rifas</label>
+              <input type="text" id="banner-rifas-enlace" placeholder="https://rifasapponline.netlify.app/">
+            </div>
+            
+            <div class="form-group">
+              <label>Imagen del Banner</label>
+              <div class="file-upload" id="banner-rifas-upload">
+                <input type="file" id="banner-rifas-file" accept="image/*">
+                <label for="banner-rifas-file" class="file-upload-label">
+                  📁 Hacer clic aquí para subir imagen del banner de rifas
+                  <br>
+                  <small>Formatos: JPG, PNG, GIF (Recomendado: 1200x300px)</small>
+                </label>
+              </div>
+              <img id="banner-rifas-preview" class="banner-preview" alt="Vista previa del banner de rifas">
+              <div class="upload-status" id="banner-rifas-status"></div>
+              <input type="hidden" id="banner-rifas-imagen-url">
+            </div>
+            
+            <div class="form-group">
+              <label>
+                <input type="checkbox" id="banner-rifas-activo"> 
+                ✅ Banner activo (se mostrará en la tienda)
+              </label>
+            </div>
+            
+            <div class="banner-actions">
+              <button type="submit" class="btn btn-warning" id="btn-guardar-banner-rifas">
+                💾 Guardar Banner Rifas
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="restaurarBannerRifasDefault()">
+                🔄 Restaurar Valores Predeterminados
+              </button>
+              <button type="button" class="btn btn-danger" onclick="desactivarBannerRifas()">
+                🚫 Desactivar Banner Rifas
+              </button>
+            </div>
+          </form>
           
           <div class="banner-info">
-            <h4>📝 Banner de Rifas Actual:</h4>
+            <h4>📝 Información del Banner Actual:</h4>
             <div id="banner-rifas-actual-info">
               <em>Cargando información del banner actual...</em>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- Sección Categorías -->
-      <div id="categorias" class="section">
-        <div class="form-container">
-          <h3>Gestión de Categorías</h3>
-          <form id="form-categoria">
-            <div class="form-group">
-              <label for="categoria-nombre">Nombre de la Categoría</label>
-              <input type="text" id="categoria-nombre" required>
-            </div>
-            
-            <div class="form-group">
-              <label for="categoria-descripcion">Descripción</label>
-              <textarea id="categoria-descripcion"></textarea>
-            </div>
-            
-            <button type="submit" class="btn btn-primary">Agregar Categoría</button>
-          </form>
-        </div>
-
-        <div class="table-container">
-          <h3>Categorías Existentes</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Descripción</th>
-                <th>Productos</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody id="tabla-categorias">
-              <!-- Las categorías se cargarán aquí -->
-            </tbody>
-          </table>
         </div>
       </div>
 
@@ -810,7 +848,7 @@
               <small>Costo de envío cuando no se alcanza el mínimo</small>
             </div>
             
-            <button type="submit" class="btn btn-primary">Guardar Configuración</button>
+            <button type="submit" class="btn btn-primary">💾 Guardar Configuración</button>
           </form>
         </div>
       </div>
@@ -822,110 +860,109 @@
     // CONFIGURACIÓN PARSE/BACK4APP
     // =============================================
 
-    // Inicializar Parse con tus credenciales de Back4app [citation:1][citation:10]
+    // Inicializar Parse con tus credenciales de Back4app
     Parse.initialize("sbbQLlkupAVhCVM3ZYz29GD18w4PeZa9em3brji9", "yLu8MFWZbeBVn1tTIBIUWXECaVLG81531xWul4Tk");
     Parse.serverURL = 'https://parseapi.back4app.com/';
 
     // =============================================
-    // SISTEMA DE AUTENTICACIÓN
-    // =============================================
-
-    // Verificar sesión activa
-    async function verificarSesion() {
-      try {
-        const usuarioActual = await Parse.User.currentAsync();
-        if (usuarioActual) {
-          // Verificar si el usuario tiene rol de administrador
-          const esAdmin = usuarioActual.get('esAdmin');
-          if (esAdmin) {
-            mostrarPanelAdmin();
-            document.getElementById('admin-user').textContent = usuarioActual.get('username');
-            return true;
-          } else {
-            console.warn('El usuario no tiene permisos de administrador');
-            await Parse.User.logOut();
-          }
-        }
-      } catch (error) {
-        console.error('Error verificando sesión:', error);
-      }
-      return false;
-    }
-
-    // Manejar el formulario de login
-    document.getElementById('login-form').addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      const errorDiv = document.getElementById('login-error');
-      const loginBtn = document.getElementById('login-btn');
-      const loadingDiv = document.getElementById('login-loading');
-      
-      // Mostrar estado de carga
-      loginBtn.disabled = true;
-      loadingDiv.style.display = 'block';
-      errorDiv.style.display = 'none';
-      
-      try {
-        // Intentar login con Parse [citation:9]
-        const user = await Parse.User.logIn(username, password);
-        
-        // Verificar si es administrador
-        const esAdmin = user.get('esAdmin');
-        if (esAdmin === true) {
-          mostrarPanelAdmin();
-          document.getElementById('admin-user').textContent = user.get('username');
-        } else {
-          await Parse.User.logOut();
-          throw new Error('No tienes permisos de administrador');
-        }
-        
-      } catch (error) {
-        errorDiv.textContent = 'Credenciales incorrectas o sin permisos de administrador';
-        errorDiv.style.display = 'block';
-      } finally {
-        loginBtn.disabled = false;
-        loadingDiv.style.display = 'none';
-      }
-    });
-
-    // Mostrar el panel de administración
-    function mostrarPanelAdmin() {
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('admin-panel').style.display = 'flex';
-      cargarDashboard();
-      cargarProductos();
-      cargarPedidos();
-      cargarCategorias();
-      inicializarUploads();
-      cargarInfoBannersActuales();
-    }
-
-    // Volver a la página principal de la tienda
-    function volverATienda() {
-      if (confirm('¿Volver a la página principal de la tienda?')) {
-        window.location.href = 'index.html';
-      }
-    }
-
-    // Cerrar sesión
-    async function cerrarSesion() {
-      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
-        try {
-          await Parse.User.logOut();
-          document.getElementById('admin-panel').style.display = 'none';
-          document.getElementById('login-screen').style.display = 'flex';
-          document.getElementById('login-form').reset();
-        } catch (error) {
-          console.error('Error cerrando sesión:', error);
-        }
-      }
-    }
-
-    // =============================================
     // MODELOS DE DATOS PARA BACK4APP
     // =============================================
+
+    // Clase Banner para Back4app - MEJORADA
+    class Banner extends Parse.Object {
+      constructor() {
+        super('Banner');
+      }
+      
+      static async obtenerBannerPorTipo(tipo) {
+        const query = new Parse.Query(Banner);
+        query.equalTo('tipo', tipo);
+        try {
+          const banners = await query.find();
+          console.log(`🔍 Banners encontrados para ${tipo}:`, banners.length);
+          return banners.length > 0 ? banners[0] : null;
+        } catch (error) {
+          console.error(`❌ Error obteniendo banner ${tipo}:`, error);
+          return null;
+        }
+      }
+      
+      static async crearOActualizar(data) {
+        try {
+          // Buscar si ya existe un banner de este tipo
+          let banner = await Banner.obtenerBannerPorTipo(data.tipo);
+          
+          if (!banner) {
+            console.log(`🆕 Creando nuevo banner para tipo: ${data.tipo}`);
+            banner = new Banner();
+          } else {
+            console.log(`📝 Actualizando banner existente para tipo: ${data.tipo}`);
+          }
+          
+          // Configurar los datos del banner con valores por defecto
+          banner.set('tipo', data.tipo);
+          banner.set('titulo', data.titulo || '');
+          banner.set('descripcion', data.descripcion || '');
+          banner.set('enlace', data.enlace || '');
+          banner.set('imagen', data.imagen || '');
+          banner.set('activo', data.activo !== undefined ? data.activo : true);
+          banner.set('orden', data.orden || 1);
+          
+          console.log('💾 Guardando banner en Back4app...');
+          const resultado = await banner.save();
+          console.log('✅ Banner guardado exitosamente:', resultado);
+          
+          return resultado;
+          
+        } catch (error) {
+          console.error('❌ Error guardando banner:', error);
+          throw error;
+        }
+      }
+    }
+
+    // Clase Configuracion para Back4app
+    class Configuracion extends Parse.Object {
+      constructor() {
+        super('Configuracion');
+      }
+      
+      static async obtener() {
+        const query = new Parse.Query(Configuracion);
+        try {
+          const configs = await query.find();
+          return configs.length > 0 ? configs[0] : null;
+        } catch (error) {
+          console.error('Error obteniendo configuración:', error);
+          return null;
+        }
+      }
+      
+      static async crearOActualizar(data) {
+        try {
+          let config = await Configuracion.obtener();
+          
+          if (!config) {
+            config = new Configuracion();
+          }
+          
+          config.set('nombreTienda', data.nombreTienda);
+          config.set('whatsapp', data.whatsapp);
+          config.set('direccion', data.direccion);
+          config.set('horarios', data.horarios);
+          config.set('mensajeWhatsApp', data.mensajeWhatsApp);
+          config.set('minimoEnvioGratis', data.minimoEnvioGratis);
+          config.set('costoEnvio', data.costoEnvio);
+          
+          const resultado = await config.save();
+          return resultado;
+          
+        } catch (error) {
+          console.error('Error guardando configuración:', error);
+          throw error;
+        }
+      }
+    }
 
     // Clase Producto
     class Producto extends Parse.Object {
@@ -935,17 +972,14 @@
       
       static async crear(data) {
         const producto = new Producto();
-        
-        // Configurar los datos del producto [citation:10]
         producto.set('nombre', data.nombre);
-        producto.set('precio', data.precio);
+        producto.set('precio', parseFloat(data.precio));
         producto.set('categoria', data.categoria);
         producto.set('descripcion', data.descripcion || '');
         producto.set('destacado', data.destacado || false);
-        producto.set('imagen', data.imagen || 'img/productos/default.jpg');
+        producto.set('imagen', data.imagen || 'https://via.placeholder.com/300x250/25D366/ffffff?text=Producto');
         producto.set('activo', true);
         
-        // Guardar en Back4app
         try {
           const resultado = await producto.save();
           return resultado;
@@ -1009,117 +1043,534 @@
           return [];
         }
       }
-      
-      static async cambiarEstado(id, nuevoEstado) {
-        try {
-          const query = new Parse.Query(Pedido);
-          const pedido = await query.get(id);
-          pedido.set('estado', nuevoEstado);
-          await pedido.save();
-          return true;
-        } catch (error) {
-          console.error('Error cambiando estado del pedido:', error);
-          throw error;
-        }
-      }
-    }
-
-    // Clase Categoria
-    class Categoria extends Parse.Object {
-      constructor() {
-        super('Categoria');
-      }
-      
-      static async obtenerTodas() {
-        const query = new Parse.Query(Categoria);
-        query.ascending('nombre');
-        try {
-          return await query.find();
-        } catch (error) {
-          console.error('Error obteniendo categorías:', error);
-          return [];
-        }
-      }
     }
 
     // =============================================
-    // FUNCIONES PRINCIPALES ACTUALIZADAS
+    // SISTEMA DE AUTENTICACIÓN
     // =============================================
 
-    // Cargar dashboard con datos reales
-    async function cargarDashboard() {
+    // Verificar sesión activa
+    async function verificarSesion() {
       try {
-        // Obtener datos de Back4app
-        const pedidosRecientes = await Pedido.obtenerRecientes(5);
-        const todosLosPedidos = await Pedido.obtenerTodos();
-        const productos = await Producto.obtenerTodos();
-        
-        // Calcular estadísticas
-        const totalVentas = todosLosPedidos.reduce((sum, pedido) => sum + (pedido.get('total') || 0), 0);
-        const hoy = new Date().toDateString();
-        const pedidosHoy = todosLosPedidos.filter(pedido => 
-          new Date(pedido.createdAt).toDateString() === hoy
-        ).length;
-        const pedidosPendientes = todosLosPedidos.filter(pedido => 
-          pedido.get('estado') === 'pendiente'
-        ).length;
-
-        // Actualizar UI
-        document.getElementById('total-ventas').textContent = `$${totalVentas}`;
-        document.getElementById('total-pedidos').textContent = pedidosHoy;
-        document.getElementById('total-productos').textContent = productos.length;
-        document.getElementById('pedidos-pendientes').textContent = pedidosPendientes;
-
-        // Cargar pedidos recientes
-        const tablaPedidos = document.getElementById('tabla-pedidos-recientes');
-        tablaPedidos.innerHTML = pedidosRecientes.map(pedido => `
-          <tr>
-            <td>${pedido.id}</td>
-            <td>${pedido.get('cliente') || 'Cliente'}</td>
-            <td>$${pedido.get('total') || 0}</td>
-            <td><span class="estado-${pedido.get('estado') || 'pendiente'}">${pedido.get('estado') || 'pendiente'}</span></td>
-            <td>${new Date(pedido.createdAt).toLocaleDateString()}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclick="verPedido('${pedido.id}')">Ver</button>
-            </td>
-          </tr>
-        `).join('');
-
+        const usuarioActual = await Parse.User.currentAsync();
+        if (usuarioActual) {
+          // Verificar si el usuario tiene rol de administrador
+          const esAdmin = usuarioActual.get('esAdmin');
+          if (esAdmin) {
+            mostrarPanelAdmin();
+            document.getElementById('admin-user').textContent = usuarioActual.get('username');
+            return true;
+          } else {
+            console.warn('El usuario no tiene permisos de administrador');
+            await Parse.User.logOut();
+          }
+        }
       } catch (error) {
-        console.error('Error cargando dashboard:', error);
-        alert('Error al cargar el dashboard');
+        console.error('Error verificando sesión:', error);
+      }
+      return false;
+    }
+
+    // Manejar el formulario de login
+    document.getElementById('login-form').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errorDiv = document.getElementById('login-error');
+      const loginBtn = document.getElementById('login-btn');
+      const loadingDiv = document.getElementById('login-loading');
+      
+      // Mostrar estado de carga
+      loginBtn.disabled = true;
+      loadingDiv.style.display = 'block';
+      errorDiv.style.display = 'none';
+      
+      try {
+        // Intentar login con Parse
+        const user = await Parse.User.logIn(username, password);
+        
+        // Verificar si es administrador
+        const esAdmin = user.get('esAdmin');
+        if (esAdmin === true) {
+          mostrarPanelAdmin();
+          document.getElementById('admin-user').textContent = user.get('username');
+        } else {
+          await Parse.User.logOut();
+          throw new Error('No tienes permisos de administrador');
+        }
+        
+      } catch (error) {
+        errorDiv.textContent = 'Credenciales incorrectas o sin permisos de administrador';
+        errorDiv.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loadingDiv.style.display = 'none';
+      }
+    });
+
+    // Mostrar el panel de administración
+    function mostrarPanelAdmin() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('admin-panel').style.display = 'flex';
+      cargarDashboard();
+      cargarProductos();
+      cargarPedidos();
+      inicializarUploads();
+      cargarBannersActuales();
+      cargarConfiguracionActual();
+    }
+
+    // Volver a la página principal de la tienda
+    function volverATienda() {
+      if (confirm('¿Volver a la página principal de la tienda?')) {
+        window.location.href = 'index.html';
       }
     }
 
-    // Cargar productos desde Back4app
+    // Cerrar sesión
+    async function cerrarSesion() {
+      if (confirm('¿Estás seguro de que quieres cerrar sesión?')) {
+        try {
+          await Parse.User.logOut();
+          document.getElementById('admin-panel').style.display = 'none';
+          document.getElementById('login-screen').style.display = 'flex';
+          document.getElementById('login-form').reset();
+        } catch (error) {
+          console.error('Error cerrando sesión:', error);
+        }
+      }
+    }
+
+    // =============================================
+    // SISTEMA DE GESTIÓN DE BANNERS - COMPLETAMENTE CORREGIDO
+    // =============================================
+
+    let bannerOfertaFile = null;
+    let bannerRifasFile = null;
+
+    // Cargar información de banners actuales - CORREGIDO
+    async function cargarBannersActuales() {
+      try {
+        console.log('🔄 Cargando banners desde Back4app...');
+        
+        // Cargar banner de oferta
+        const bannerOferta = await Banner.obtenerBannerPorTipo('oferta');
+        if (bannerOferta) {
+          console.log('✅ Banner oferta encontrado:', bannerOferta);
+          document.getElementById('banner-oferta-titulo').value = bannerOferta.get('titulo') || 'Oferta Especial';
+          document.getElementById('banner-oferta-descripcion').value = bannerOferta.get('descripcion') || 'Descuentos hasta 50%';
+          document.getElementById('banner-oferta-enlace').value = bannerOferta.get('enlace') || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+          document.getElementById('banner-oferta-activo').checked = bannerOferta.get('activo') !== false;
+          
+          const imagenUrl = bannerOferta.get('imagen');
+          if (imagenUrl) {
+            document.getElementById('banner-oferta-imagen-url').value = imagenUrl;
+            document.getElementById('banner-oferta-preview').src = imagenUrl;
+            document.getElementById('banner-oferta-preview').style.display = 'block';
+          }
+          
+          actualizarInfoBannerOferta(bannerOferta);
+        } else {
+          console.log('ℹ️ No hay banner de oferta, usando valores por defecto');
+          // Establecer valores por defecto si no existe el banner
+          actualizarInfoBannerOferta(null);
+        }
+        
+        // Cargar banner de rifas
+        const bannerRifas = await Banner.obtenerBannerPorTipo('rifas');
+        if (bannerRifas) {
+          console.log('✅ Banner rifas encontrado:', bannerRifas);
+          document.getElementById('banner-rifas-titulo').value = bannerRifas.get('titulo') || '🎉 ¡Participa en Nuestras Rifas! 🎉';
+          document.getElementById('banner-rifas-descripcion').value = bannerRifas.get('descripcion') || 'Gana premios increíbles - ¡Es muy fácil participar!';
+          document.getElementById('banner-rifas-enlace').value = bannerRifas.get('enlace') || 'https://rifasapponline.netlify.app/';
+          document.getElementById('banner-rifas-activo').checked = bannerRifas.get('activo') !== false;
+          
+          const imagenUrl = bannerRifas.get('imagen');
+          if (imagenUrl) {
+            document.getElementById('banner-rifas-imagen-url').value = imagenUrl;
+            document.getElementById('banner-rifas-preview').src = imagenUrl;
+            document.getElementById('banner-rifas-preview').style.display = 'block';
+          }
+          
+          actualizarInfoBannerRifas(bannerRifas);
+        } else {
+          console.log('ℹ️ No hay banner de rifas, usando valores por defecto');
+          // Establecer valores por defecto si no existe el banner
+          actualizarInfoBannerRifas(null);
+        }
+        
+      } catch (error) {
+        console.error('❌ Error cargando banners actuales:', error);
+        // En caso de error, mostrar información por defecto
+        actualizarInfoBannerOferta(null);
+        actualizarInfoBannerRifas(null);
+      }
+    }
+
+    // Actualizar información del banner de oferta - CORREGIDO
+    function actualizarInfoBannerOferta(banner) {
+      const infoDiv = document.getElementById('banner-oferta-actual-info');
+      
+      if (!banner) {
+        infoDiv.innerHTML = `
+          <strong>🔄 Banner No Configurado</strong><br>
+          📝 <em>Usando valores por defecto</em><br>
+          🔗 Enlace: No configurado<br>
+          🖼️ Imagen: No configurada<br>
+          ❌ <strong>INACTIVO - No se muestra en la tienda</strong>
+        `;
+        return;
+      }
+      
+      const titulo = banner.get('titulo') || 'Sin título';
+      const descripcion = banner.get('descripcion') || 'Sin descripción';
+      const enlace = banner.get('enlace') || 'No configurado';
+      const imagen = banner.get('imagen');
+      const activo = banner.get('activo') !== false;
+      
+      infoDiv.innerHTML = `
+        <strong>${titulo}</strong><br>
+        📝 ${descripcion}<br>
+        🔗 Enlace: ${enlace}<br>
+        🖼️ Imagen: ${imagen ? '✅ Configurada' : '❌ No configurada'}<br>
+        ${activo ? '✅ <strong>ACTIVO en la tienda</strong>' : '❌ <strong>INACTIVO - No se muestra</strong>'}
+      `;
+    }
+
+    // Actualizar información del banner de rifas - CORREGIDO
+    function actualizarInfoBannerRifas(banner) {
+      const infoDiv = document.getElementById('banner-rifas-actual-info');
+      
+      if (!banner) {
+        infoDiv.innerHTML = `
+          <strong>🔄 Banner No Configurado</strong><br>
+          📝 <em>Usando valores por defecto</em><br>
+          🔗 Enlace: No configurado<br>
+          🖼️ Imagen: No configurada<br>
+          ❌ <strong>INACTIVO - No se muestra en la tienda</strong>
+        `;
+        return;
+      }
+      
+      const titulo = banner.get('titulo') || 'Sin título';
+      const descripcion = banner.get('descripcion') || 'Sin descripción';
+      const enlace = banner.get('enlace') || 'No configurado';
+      const imagen = banner.get('imagen');
+      const activo = banner.get('activo') !== false;
+      
+      infoDiv.innerHTML = `
+        <strong>${titulo}</strong><br>
+        📝 ${descripcion}<br>
+        🔗 Enlace: ${enlace}<br>
+        🖼️ Imagen: ${imagen ? '✅ Configurada' : '❌ No configurada'}<br>
+        ${activo ? '✅ <strong>ACTIVO en la tienda</strong>' : '❌ <strong>INACTIVO - No se muestra</strong>'}
+      `;
+    }
+
+    // Formulario de banner de oferta - CORREGIDO
+    document.getElementById('form-banner-oferta').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btnGuardar = document.getElementById('btn-guardar-banner-oferta');
+      const estadoOriginal = btnGuardar.innerHTML;
+      
+      btnGuardar.innerHTML = '💾 Guardando...';
+      btnGuardar.disabled = true;
+      
+      try {
+        const titulo = document.getElementById('banner-oferta-titulo').value || 'Oferta Especial';
+        const descripcion = document.getElementById('banner-oferta-descripcion').value || 'Descuentos hasta 50%';
+        const enlace = document.getElementById('banner-oferta-enlace').value || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+        const imagenUrl = document.getElementById('banner-oferta-imagen-url').value || 'img/banner-oferta.jpg';
+        const activo = document.getElementById('banner-oferta-activo').checked;
+        
+        const datosBanner = {
+          tipo: 'oferta',
+          titulo: titulo,
+          descripcion: descripcion,
+          enlace: enlace,
+          imagen: imagenUrl,
+          activo: activo,
+          orden: 1
+        };
+
+        console.log('📤 Guardando banner oferta:', datosBanner);
+        const bannerGuardado = await Banner.crearOActualizar(datosBanner);
+        
+        actualizarInfoBannerOferta(bannerGuardado);
+        mostrarNotificacion('✅ Banner de oferta guardado correctamente');
+        
+      } catch (error) {
+        console.error('❌ Error guardando banner de oferta:', error);
+        mostrarNotificacion('❌ Error al guardar el banner de oferta: ' + error.message, 'error');
+      } finally {
+        btnGuardar.innerHTML = estadoOriginal;
+        btnGuardar.disabled = false;
+      }
+    });
+
+    // Formulario de banner de rifas - CORREGIDO
+    document.getElementById('form-banner-rifas').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btnGuardar = document.getElementById('btn-guardar-banner-rifas');
+      const estadoOriginal = btnGuardar.innerHTML;
+      
+      btnGuardar.innerHTML = '💾 Guardando...';
+      btnGuardar.disabled = true;
+      
+      try {
+        const titulo = document.getElementById('banner-rifas-titulo').value || '🎉 ¡Participa en Nuestras Rifas! 🎉';
+        const descripcion = document.getElementById('banner-rifas-descripcion').value || 'Gana premios increíbles - ¡Es muy fácil participar!';
+        const enlace = document.getElementById('banner-rifas-enlace').value || 'https://rifasapponline.netlify.app/';
+        const imagenUrl = document.getElementById('banner-rifas-imagen-url').value || 'https://via.placeholder.com/1200x300/FF6B35/ffffff?text=PARTICIPA+EN+NUESTRAS+RIFAS+ONLINE';
+        const activo = document.getElementById('banner-rifas-activo').checked;
+        
+        const datosBanner = {
+          tipo: 'rifas',
+          titulo: titulo,
+          descripcion: descripcion,
+          enlace: enlace,
+          imagen: imagenUrl,
+          activo: activo,
+          orden: 2
+        };
+
+        console.log('📤 Guardando banner rifas:', datosBanner);
+        const bannerGuardado = await Banner.crearOActualizar(datosBanner);
+        
+        actualizarInfoBannerRifas(bannerGuardado);
+        mostrarNotificacion('✅ Banner de rifas guardado correctamente');
+        
+      } catch (error) {
+        console.error('❌ Error guardando banner de rifas:', error);
+        mostrarNotificacion('❌ Error al guardar el banner de rifas: ' + error.message, 'error');
+      } finally {
+        btnGuardar.innerHTML = estadoOriginal;
+        btnGuardar.disabled = false;
+      }
+    });
+
+    // Restaurar valores predeterminados del banner de oferta
+    async function restaurarBannerOfertaDefault() {
+      if (confirm('¿Restaurar valores predeterminados del banner de oferta?')) {
+        try {
+          document.getElementById('banner-oferta-titulo').value = 'Oferta Especial';
+          document.getElementById('banner-oferta-descripcion').value = 'Descuentos hasta 50%';
+          document.getElementById('banner-oferta-enlace').value = 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+          document.getElementById('banner-oferta-activo').checked = true;
+          document.getElementById('banner-oferta-imagen-url').value = 'img/banner-oferta.jpg';
+          
+          document.getElementById('banner-oferta-preview').src = 'img/banner-oferta.jpg';
+          document.getElementById('banner-oferta-preview').style.display = 'block';
+          
+          mostrarNotificacion('✅ Valores predeterminados restaurados. Recuerda guardar los cambios.');
+          
+        } catch (error) {
+          console.error('Error restaurando banner de oferta:', error);
+          mostrarNotificacion('Error al restaurar valores predeterminados', 'error');
+        }
+      }
+    }
+
+    // Restaurar valores predeterminados del banner de rifas
+    async function restaurarBannerRifasDefault() {
+      if (confirm('¿Restaurar valores predeterminados del banner de rifas?')) {
+        try {
+          document.getElementById('banner-rifas-titulo').value = '🎉 ¡Participa en Nuestras Rifas! 🎉';
+          document.getElementById('banner-rifas-descripcion').value = 'Gana premios increíbles - ¡Es muy fácil participar!';
+          document.getElementById('banner-rifas-enlace').value = 'https://rifasapponline.netlify.app/';
+          document.getElementById('banner-rifas-activo').checked = true;
+          document.getElementById('banner-rifas-imagen-url').value = 'https://via.placeholder.com/1200x300/FF6B35/ffffff?text=PARTICIPA+EN+NUESTRAS+RIFAS+ONLINE';
+          
+          document.getElementById('banner-rifas-preview').src = 'https://via.placeholder.com/1200x300/FF6B35/ffffff?text=PARTICIPA+EN+NUESTRAS+RIFAS+ONLINE';
+          document.getElementById('banner-rifas-preview').style.display = 'block';
+          
+          mostrarNotificacion('✅ Valores predeterminados restaurados. Recuerda guardar los cambios.');
+          
+        } catch (error) {
+          console.error('Error restaurando banner de rifas:', error);
+          mostrarNotificacion('Error al restaurar valores predeterminados', 'error');
+        }
+      }
+    }
+
+    // Desactivar banner de rifas
+    async function desactivarBannerRifas() {
+      if (confirm('¿Desactivar el banner de rifas? No se mostrará en la tienda.')) {
+        try {
+          document.getElementById('banner-rifas-activo').checked = false;
+          
+          // Guardar automáticamente el cambio
+          const datosBanner = {
+            tipo: 'rifas',
+            titulo: document.getElementById('banner-rifas-titulo').value,
+            descripcion: document.getElementById('banner-rifas-descripcion').value,
+            enlace: document.getElementById('banner-rifas-enlace').value,
+            imagen: document.getElementById('banner-rifas-imagen-url').value,
+            activo: false,
+            orden: 2
+          };
+
+          await Banner.crearOActualizar(datosBanner);
+          
+          const bannerRifas = await Banner.obtenerBannerPorTipo('rifas');
+          actualizarInfoBannerRifas(bannerRifas);
+          
+          mostrarNotificacion('✅ Banner de rifas desactivado correctamente');
+          
+        } catch (error) {
+          console.error('Error desactivando banner de rifas:', error);
+          mostrarNotificacion('Error al desactivar el banner de rifas', 'error');
+        }
+      }
+    }
+
+    // =============================================
+    // SISTEMA DE CONFIGURACIÓN
+    // =============================================
+
+    // Cargar configuración actual
+    async function cargarConfiguracionActual() {
+      try {
+        const config = await Configuracion.obtener();
+        if (config) {
+          document.getElementById('config-nombre').value = config.get('nombreTienda') || 'PuntoAlmacen';
+          document.getElementById('config-whatsapp').value = config.get('whatsapp') || '5493624840349';
+          document.getElementById('config-direccion').value = config.get('direccion') || 'Calle Falsa 123, Ciudad';
+          document.getElementById('config-horarios').value = config.get('horarios') || 'L a V 9-18 hs';
+          document.getElementById('config-mensaje').value = config.get('mensajeWhatsApp') || 'Hola PuntoAlmacen, quiero hacer un pedido';
+          document.getElementById('config-envio-gratis').value = config.get('minimoEnvioGratis') || 10000;
+          document.getElementById('config-costo-envio').value = config.get('costoEnvio') || 800;
+        }
+      } catch (error) {
+        console.error('Error cargando configuración:', error);
+      }
+    }
+
+    // Formulario de configuración
+    document.getElementById('form-configuracion').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      
+      const btnGuardar = this.querySelector('button[type="submit"]');
+      const estadoOriginal = btnGuardar.innerHTML;
+      
+      btnGuardar.innerHTML = '💾 Guardando...';
+      btnGuardar.disabled = true;
+      
+      try {
+        const datosConfig = {
+          nombreTienda: document.getElementById('config-nombre').value,
+          whatsapp: document.getElementById('config-whatsapp').value,
+          direccion: document.getElementById('config-direccion').value,
+          horarios: document.getElementById('config-horarios').value,
+          mensajeWhatsApp: document.getElementById('config-mensaje').value,
+          minimoEnvioGratis: parseInt(document.getElementById('config-envio-gratis').value),
+          costoEnvio: parseInt(document.getElementById('config-costo-envio').value)
+        };
+
+        await Configuracion.crearOActualizar(datosConfig);
+        mostrarNotificacion('✅ Configuración guardada correctamente');
+        
+      } catch (error) {
+        console.error('Error guardando configuración:', error);
+        mostrarNotificacion('❌ Error al guardar la configuración: ' + error.message, 'error');
+      } finally {
+        btnGuardar.innerHTML = estadoOriginal;
+        btnGuardar.disabled = false;
+      }
+    });
+
+    // =============================================
+    // SISTEMA DE UPLOAD DE ARCHIVOS
+    // =============================================
+
+    function inicializarUploads() {
+      // Upload de banner oferta
+      document.getElementById('banner-oferta-file').addEventListener('change', function(e) {
+        bannerOfertaFile = e.target.files[0];
+        if (bannerOfertaFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('banner-oferta-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('banner-oferta-imagen-url').value = e.target.result;
+            document.getElementById('banner-oferta-status').textContent = `✅ Imagen cargada: ${bannerOfertaFile.name} (${Math.round(bannerOfertaFile.size/1024)} KB)`;
+          };
+          reader.readAsDataURL(bannerOfertaFile);
+        }
+      });
+
+      // Upload de banner rifas
+      document.getElementById('banner-rifas-file').addEventListener('change', function(e) {
+        bannerRifasFile = e.target.files[0];
+        if (bannerRifasFile) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('banner-rifas-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('banner-rifas-imagen-url').value = e.target.result;
+            document.getElementById('banner-rifas-status').textContent = `✅ Imagen cargada: ${bannerRifasFile.name} (${Math.round(bannerRifasFile.size/1024)} KB)`;
+          };
+          reader.readAsDataURL(bannerRifasFile);
+        }
+      });
+
+      // Upload de producto
+      document.getElementById('producto-file').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const preview = document.getElementById('producto-preview');
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+            document.getElementById('producto-imagen-url').value = e.target.result;
+            document.getElementById('producto-status').textContent = `✅ Imagen cargada: ${file.name}`;
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
+    // =============================================
+    // FUNCIONES DE PRODUCTOS Y PEDIDOS
+    // =============================================
+
+    // Cargar productos
     async function cargarProductos() {
       const loadingDiv = document.getElementById('productos-loading');
       const tablaProductos = document.getElementById('tabla-productos');
       
       loadingDiv.style.display = 'block';
-      tablaProductos.innerHTML = '';
       
       try {
         const productos = await Producto.obtenerTodos();
         
-        tablaProductos.innerHTML = productos.map(producto => `
-          <tr>
-            <td>${producto.id}</td>
-            <td>
-              <img src="${producto.get('imagen')}" alt="${producto.get('nombre')}" 
-                   style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" 
-                   onerror="this.src='https://via.placeholder.com/50x50/25D366/ffffff?text=IMG'">
-            </td>
-            <td>${producto.get('nombre')}</td>
-            <td>$${producto.get('precio')}</td>
-            <td>${producto.get('categoria')}</td>
-            <td>${producto.get('destacado') ? '⭐' : ''}</td>
-            <td>
-              <button class="btn btn-sm btn-secondary" onclick="editarProducto('${producto.id}')">Editar</button>
-              <button class="btn btn-sm btn-danger" onclick="eliminarProducto('${producto.id}')">Eliminar</button>
-            </td>
-          </tr>
-        `).join('');
+        if (productos.length === 0) {
+          tablaProductos.innerHTML = '<tr><td colspan="7" style="text-align: center;">No hay productos activos</td></tr>';
+        } else {
+          tablaProductos.innerHTML = productos.map(producto => `
+            <tr>
+              <td>${producto.id}</td>
+              <td>
+                <img src="${producto.get('imagen')}" alt="${producto.get('nombre')}" 
+                     style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" 
+                     onerror="this.src='https://via.placeholder.com/50x50/25D366/ffffff?text=IMG'">
+              </td>
+              <td>${producto.get('nombre')}</td>
+              <td>$${producto.get('precio')}</td>
+              <td>${producto.get('categoria')}</td>
+              <td>${producto.get('destacado') ? '⭐' : ''}</td>
+              <td>
+                <button class="btn btn-sm btn-danger" onclick="eliminarProducto('${producto.id}')">Eliminar</button>
+              </td>
+            </tr>
+          `).join('');
+        }
         
       } catch (error) {
         console.error('Error cargando productos:', error);
@@ -1140,11 +1591,11 @@
       submitBtn.disabled = true;
       
       try {
-        const imagenUrl = document.getElementById('producto-imagen-url').value || 'img/productos/default.jpg';
+        const imagenUrl = document.getElementById('producto-imagen-url').value || 'https://via.placeholder.com/300x250/25D366/ffffff?text=Producto';
         
         const datosProducto = {
           nombre: document.getElementById('producto-nombre').value,
-          precio: parseFloat(document.getElementById('producto-precio').value),
+          precio: document.getElementById('producto-precio').value,
           categoria: document.getElementById('producto-categoria').value,
           imagen: imagenUrl,
           descripcion: document.getElementById('producto-descripcion').value,
@@ -1162,103 +1613,100 @@
         await cargarProductos();
         await cargarDashboard();
         
-        alert('✅ Producto agregado correctamente');
+        mostrarNotificacion('✅ Producto agregado correctamente');
         
       } catch (error) {
         console.error('Error guardando producto:', error);
-        alert('Error al guardar el producto: ' + error.message);
+        mostrarNotificacion('❌ Error al guardar el producto: ' + error.message, 'error');
       } finally {
         loadingDiv.style.display = 'none';
         submitBtn.disabled = false;
       }
     });
 
-    // Cargar pedidos desde Back4app
+    // Eliminar producto
+    async function eliminarProducto(id) {
+      if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
+        try {
+          await Producto.eliminar(id);
+          await cargarProductos();
+          await cargarDashboard();
+          mostrarNotificacion('✅ Producto eliminado correctamente');
+        } catch (error) {
+          console.error('Error eliminando producto:', error);
+          mostrarNotificacion('❌ Error al eliminar el producto', 'error');
+        }
+      }
+    }
+
+    // Cargar pedidos
     async function cargarPedidos() {
       const loadingDiv = document.getElementById('pedidos-loading');
       const tablaPedidos = document.getElementById('tabla-pedidos');
+      const tablaPedidosRecientes = document.getElementById('tabla-pedidos-recientes');
       
       loadingDiv.style.display = 'block';
-      tablaPedidos.innerHTML = '';
       
       try {
         const pedidos = await Pedido.obtenerTodos();
+        const pedidosRecientes = await Pedido.obtenerRecientes(5);
         
-        tablaPedidos.innerHTML = pedidos.map(pedido => `
-          <tr>
-            <td>${pedido.id}</td>
-            <td>
-              <strong>${pedido.get('cliente') || 'Cliente'}</strong><br>
-              <small>${pedido.get('telefono') || 'Sin teléfono'}</small>
-            </td>
-            <td>
-              ${Array.isArray(pedido.get('productos')) ? 
-                pedido.get('productos').map(p => `${p.nombre} x${p.cantidad}`).join('<br>') : 
-                'Sin productos'}
-            </td>
-            <td>$${pedido.get('subtotal') || 0}</td>
-            <td>${pedido.get('envio') === 0 ? '<span style="color: #25D366;">GRATIS</span>' : `$${pedido.get('envio') || 0}`}</td>
-            <td>$${pedido.get('total') || 0}</td>
-            <td><span class="estado-${pedido.get('estado') || 'pendiente'}">${pedido.get('estado') || 'pendiente'}</span></td>
-            <td>${new Date(pedido.createdAt).toLocaleDateString()}</td>
-            <td>
-              <button class="btn btn-sm btn-primary" onclick="cambiarEstadoPedido('${pedido.id}', 'completado')">Completar</button>
-              <button class="btn btn-sm btn-secondary" onclick="verPedido('${pedido.id}')">Detalles</button>
-            </td>
-          </tr>
-        `).join('');
+        // Actualizar tabla principal de pedidos
+        if (pedidos.length === 0) {
+          tablaPedidos.innerHTML = '<tr><td colspan="9" style="text-align: center;">No hay pedidos registrados</td></tr>';
+        } else {
+          tablaPedidos.innerHTML = pedidos.map(pedido => `
+            <tr>
+              <td>${pedido.id}</td>
+              <td>
+                <strong>${pedido.get('cliente') || 'Cliente'}</strong><br>
+                <small>${pedido.get('telefono') || 'Sin teléfono'}</small>
+              </td>
+              <td>
+                ${Array.isArray(pedido.get('productos')) ? 
+                  pedido.get('productos').map(p => `${p.nombre} x${p.cantidad}`).join('<br>') : 
+                  'Sin productos'}
+              </td>
+              <td>$${pedido.get('subtotal') || 0}</td>
+              <td>${pedido.get('envio') === 0 ? '<span style="color: #25D366;">GRATIS</span>' : `$${pedido.get('envio') || 0}`}</td>
+              <td>$${pedido.get('total') || 0}</td>
+              <td><span class="estado-${pedido.get('estado') || 'pendiente'}">${pedido.get('estado') || 'pendiente'}</span></td>
+              <td>${new Date(pedido.createdAt).toLocaleDateString()}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="verPedido('${pedido.id}')">Detalles</button>
+              </td>
+            </tr>
+          `).join('');
+        }
+        
+        // Actualizar tabla de pedidos recientes en dashboard
+        if (pedidosRecientes.length === 0) {
+          tablaPedidosRecientes.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay pedidos recientes</td></tr>';
+        } else {
+          tablaPedidosRecientes.innerHTML = pedidosRecientes.map(pedido => `
+            <tr>
+              <td>${pedido.id}</td>
+              <td>${pedido.get('cliente') || 'Cliente'}</td>
+              <td>$${pedido.get('total') || 0}</td>
+              <td><span class="estado-${pedido.get('estado') || 'pendiente'}">${pedido.get('estado') || 'pendiente'}</span></td>
+              <td>${new Date(pedido.createdAt).toLocaleDateString()}</td>
+              <td>
+                <button class="btn btn-sm btn-primary" onclick="verPedido('${pedido.id}')">Ver</button>
+              </td>
+            </tr>
+          `).join('');
+        }
         
       } catch (error) {
         console.error('Error cargando pedidos:', error);
         tablaPedidos.innerHTML = '<tr><td colspan="9" style="text-align: center; color: #dc3545;">Error al cargar los pedidos</td></tr>';
+        tablaPedidosRecientes.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #dc3545;">Error al cargar pedidos</td></tr>';
       } finally {
         loadingDiv.style.display = 'none';
       }
     }
 
-    // Cargar categorías
-    async function cargarCategorias() {
-      try {
-        const categorias = await Categoria.obtenerTodas();
-        const tablaCategorias = document.getElementById('tabla-categorias');
-        
-        // Esto es un ejemplo básico, puedes expandirlo según tus necesidades
-        if (categorias.length === 0) {
-          tablaCategorias.innerHTML = `
-            <tr>
-              <td>1</td>
-              <td>Almacén</td>
-              <td>Productos de almacén y comida</td>
-              <td>0</td>
-              <td>
-                <button class="btn btn-sm btn-secondary">Editar</button>
-                <button class="btn btn-sm btn-danger">Eliminar</button>
-              </td>
-            </tr>
-          `;
-        }
-        
-      } catch (error) {
-        console.error('Error cargando categorías:', error);
-      }
-    }
-
-    // =============================================
-    // FUNCIONES AUXILIARES
-    // =============================================
-
-    async function cambiarEstadoPedido(id, nuevoEstado) {
-      try {
-        await Pedido.cambiarEstado(id, nuevoEstado);
-        await cargarPedidos();
-        await cargarDashboard();
-        alert('Estado del pedido actualizado correctamente');
-      } catch (error) {
-        console.error('Error cambiando estado:', error);
-        alert('Error al cambiar el estado del pedido');
-      }
-    }
-
+    // Ver detalles del pedido
     async function verPedido(id) {
       try {
         const query = new Parse.Query(Pedido);
@@ -1266,7 +1714,8 @@
         
         let mensaje = `🛍️ Detalles del Pedido #${pedido.id}\n\n`;
         mensaje += `👤 Cliente: ${pedido.get('cliente') || 'No especificado'}\n`;
-        mensaje += `📞 Teléfono: ${pedido.get('telefono') || 'No especificado'}\n\n`;
+        mensaje += `📞 Teléfono: ${pedido.get('telefono') || 'No especificado'}\n`;
+        mensaje += `📍 Dirección: ${pedido.get('direccion') || 'No especificada'}\n\n`;
         mensaje += `📦 Productos:\n`;
         
         if (Array.isArray(pedido.get('productos'))) {
@@ -1284,162 +1733,74 @@
         alert(mensaje);
       } catch (error) {
         console.error('Error viendo pedido:', error);
-        alert('Error al cargar los detalles del pedido');
+        mostrarNotificacion('❌ Error al cargar los detalles del pedido', 'error');
       }
     }
 
-    async function eliminarProducto(id) {
-      if (confirm('¿Estás seguro de que quieres eliminar este producto?')) {
-        try {
-          await Producto.eliminar(id);
-          await cargarProductos();
-          await cargarDashboard();
-          alert('Producto eliminado correctamente');
-        } catch (error) {
-          console.error('Error eliminando producto:', error);
-          alert('Error al eliminar el producto');
-        }
-      }
-    }
+    // Cargar dashboard
+    async function cargarDashboard() {
+      try {
+        const pedidos = await Pedido.obtenerTodos();
+        const productos = await Producto.obtenerTodos();
+        
+        // Calcular estadísticas
+        const totalVentas = pedidos.reduce((sum, pedido) => sum + (pedido.get('total') || 0), 0);
+        const hoy = new Date().toDateString();
+        const pedidosHoy = pedidos.filter(pedido => 
+          new Date(pedido.createdAt).toDateString() === hoy
+        ).length;
+        const pedidosPendientes = pedidos.filter(pedido => 
+          pedido.get('estado') === 'pendiente'
+        ).length;
 
-    async function editarProducto(id) {
-      // Implementación básica - puedes expandir esto
-      alert('Funcionalidad de edición en desarrollo. Por ahora, elimina y crea un nuevo producto.');
+        // Actualizar UI
+        document.getElementById('total-ventas').textContent = `$${totalVentas}`;
+        document.getElementById('total-pedidos').textContent = pedidosHoy;
+        document.getElementById('total-productos').textContent = productos.length;
+        document.getElementById('pedidos-pendientes').textContent = pedidosPendientes;
+
+      } catch (error) {
+        console.error('Error cargando dashboard:', error);
+      }
     }
 
     // =============================================
-    // SISTEMA DE UPLOAD DE ARCHIVOS [citation:6]
+    // FUNCIONES UTILITARIAS
     // =============================================
 
-    let bannerOfertaFile = null;
-    let bannerRifasFile = null;
-    let productoFile = null;
-
-    function inicializarUploads() {
-      // Upload de banner oferta
-      document.getElementById('banner-oferta-file').addEventListener('change', function(e) {
-        bannerOfertaFile = e.target.files[0];
-        if (bannerOfertaFile) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const preview = document.getElementById('banner-oferta-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('btn-guardar-banner-oferta').disabled = false;
-            document.getElementById('banner-oferta-status').textContent = `✅ Imagen cargada: ${bannerOfertaFile.name} (${Math.round(bannerOfertaFile.size/1024)} KB)`;
-          };
-          reader.readAsDataURL(bannerOfertaFile);
-        }
-      });
-
-      // Upload de banner rifas
-      document.getElementById('banner-rifas-file').addEventListener('change', function(e) {
-        bannerRifasFile = e.target.files[0];
-        if (bannerRifasFile) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const preview = document.getElementById('banner-rifas-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('btn-guardar-banner-rifas').disabled = false;
-            document.getElementById('banner-rifas-status').textContent = `✅ Imagen cargada: ${bannerRifasFile.name} (${Math.round(bannerRifasFile.size/1024)} KB)`;
-          };
-          reader.readAsDataURL(bannerRifasFile);
-        }
-      });
-
-      // Upload de producto
-      document.getElementById('producto-file').addEventListener('change', function(e) {
-        productoFile = e.target.files[0];
-        if (productoFile) {
-          const reader = new FileReader();
-          reader.onload = function(e) {
-            const preview = document.getElementById('producto-preview');
-            preview.src = e.target.result;
-            preview.style.display = 'block';
-            document.getElementById('producto-status').textContent = `✅ Imagen cargada: ${productoFile.name}`;
-            document.getElementById('producto-imagen-url').value = e.target.result;
-          };
-          reader.readAsDataURL(productoFile);
-        }
-      });
-    }
-
-    // Funciones de banners (mantenidas de tu código original)
-    function guardarBannerOferta() {
-      if (!bannerOfertaFile) {
-        alert('Por favor, selecciona una imagen primero');
-        return;
-      }
-      // Implementación para guardar en Back4app iría aquí
-      alert('Funcionalidad de banner en desarrollo');
-    }
-
-    function restaurarBannerOfertaDefault() {
-      // Implementación para Back4app
-      alert('Funcionalidad de banner en desarrollo');
-    }
-
-    function guardarBannerRifas() {
-      if (!bannerRifasFile) {
-        alert('Por favor, selecciona una imagen primero');
-        return;
-      }
-      // Implementación para guardar en Back4app iría aquí
-      alert('Funcionalidad de banner en desarrollo');
-    }
-
-    function restaurarBannerRifasDefault() {
-      // Implementación para Back4app
-      alert('Funcionalidad de banner en desarrollo');
-    }
-
-    function desactivarBannerRifas() {
-      if (confirm('¿Estás seguro de que quieres desactivar el banner de rifas?')) {
-        // Implementación para Back4app
-        alert('Banner de rifas desactivado (funcionalidad en desarrollo)');
-      }
-    }
-
-    function cargarInfoBannersActuales() {
-      // Información básica - puedes expandir esto para Back4app
-      document.getElementById('banner-oferta-actual-info').innerHTML = `
-        <strong>Banner Predeterminado</strong><br>
-        🖼️ Usando configuración por defecto<br>
-        ✅ <strong>Activo en la tienda</strong>
-      `;
+    // Mostrar notificación
+    function mostrarNotificacion(mensaje, tipo = 'success') {
+      const notificacion = document.createElement('div');
+      notificacion.className = `notificacion ${tipo === 'error' ? 'error' : ''}`;
+      notificacion.textContent = mensaje;
       
-      document.getElementById('banner-rifas-actual-info').innerHTML = `
-        <strong>Banner No Configurado</strong><br>
-        🚫 No hay banner de rifas activo<br>
-        ⚠️ <strong>No se mostrará en la tienda</strong>
-      `;
+      document.body.appendChild(notificacion);
+
+      setTimeout(() => {
+        if (document.body.contains(notificacion)) {
+          document.body.removeChild(notificacion);
+        }
+      }, 3000);
     }
 
-    // =============================================
-    // NAVEGACIÓN Y CONFIGURACIÓN
-    // =============================================
-    
     // Navegación entre secciones
     document.querySelectorAll('.nav-admin li').forEach(item => {
       item.addEventListener('click', function() {
-        // Remover clase active de todos
         document.querySelectorAll('.nav-admin li').forEach(li => li.classList.remove('active'));
         document.querySelectorAll('.section').forEach(section => section.classList.remove('active'));
         
-        // Agregar clase active al seleccionado
         this.classList.add('active');
         const sectionId = this.getAttribute('data-section');
         document.getElementById(sectionId).classList.add('active');
         document.getElementById('section-title').textContent = this.textContent.trim();
+        
+        // Cargar datos específicos cuando se accede a una sección
+        if (sectionId === 'banners') {
+          cargarBannersActuales();
+        } else if (sectionId === 'dashboard') {
+          cargarDashboard();
+        }
       });
-    });
-
-    // Configuración
-    document.getElementById('form-configuracion').addEventListener('submit', function(e) {
-      e.preventDefault();
-      // Aquí puedes implementar el guardado en Back4app
-      alert('Configuración guardada correctamente (funcionalidad en desarrollo para Back4app)');
     });
 
     // =============================================

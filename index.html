@@ -725,21 +725,21 @@
     </div>
   </div>
   
-  <a class="btn-wsp-float" href="https://wa.me/5493624840349?text=Hola%20PuntoAlmacen,%20quiero%20hacer%20un%20pedido" target="_blank" aria-label="Contactar por WhatsApp">
+  <a class="btn-wsp-float" id="btn-wsp-header" href="https://wa.me/5493624840349?text=Hola%20PuntoAlmacen,%20quiero%20hacer%20un%20pedido" target="_blank" aria-label="Contactar por WhatsApp">
     <img src="https://img.icons8.com/color/48/whatsapp.png" alt="WhatsApp"/>
     Pedir por WhatsApp
   </a>
 </header>
 
-<!-- BANNER OFERTA - Ahora dinámico -->
-<section class="hero">
-  <img id="banner-oferta" src="img/banner-oferta.jpg" alt="Oferta especial - Descuentos hasta 50%">
-  <a href="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día" class="btn-oferta">Quiero mi oferta</a>
+<!-- BANNER OFERTA - Ahora dinámico desde Back4app -->
+<section class="hero" id="banner-oferta-container">
+  <img id="banner-oferta-img" src="img/banner-oferta.jpg" alt="Oferta especial - Descuentos hasta 50%">
+  <a href="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día" class="btn-oferta" id="btn-oferta-link">Quiero mi oferta</a>
 </section>
 
-<!-- BANNER RIFAS ONLINE - Ahora dinámico -->
+<!-- BANNER RIFAS ONLINE - Ahora dinámico desde Back4app -->
 <section class="banner-rifas" id="banner-rifas-container">
-  <a href="https://rifasapponline.netlify.app/" target="_blank">
+  <a href="https://rifasapponline.netlify.app/" target="_blank" id="banner-rifas-link">
     <img id="banner-rifas-img" src="https://via.placeholder.com/1200x300/FF6B35/ffffff?text=PARTICIPA+EN+NUESTRAS+RIFAS+ONLINE" alt="Participa en nuestras rifas online">
     <div class="banner-rifas-content">
       <h3 id="banner-rifas-titulo">🎉 ¡Participa en Nuestras Rifas! 🎉</h3>
@@ -860,7 +860,7 @@
 <!-- FOOTER -->
 <footer>
   <p id="footer-info">© 2025 PuntoAlmacen – Horarios: Lunes a Viernes 9-18 hs</p>
-  <p id="footer-contacto">📍 Calle Falsa 123, Ciudad – <a href="https://wa.me/5493624840349">WhatsApp: +54 9 3624 840-349</a></p>
+  <p id="footer-contacto">📍 Calle Falsa 123, Ciudad – <a href="https://wa.me/5493624840349" id="footer-whatsapp-link">WhatsApp: +54 9 3624 840-349</a></p>
   <p><a href="admin.html" style="color: #ccc; font-size: 12px;">Panel de Administración</a></p>
 </footer>
 
@@ -869,12 +869,12 @@
   // CONFIGURACIÓN PARSE/BACK4APP
   // =============================================
 
-  // Inicializar Parse con tus credenciales de Back4app [citation:1][citation:10]
+  // Inicializar Parse con tus credenciales de Back4app
   Parse.initialize("sbbQLlkupAVhCVM3ZYz29GD18w4PeZa9em3brji9", "yLu8MFWZbeBVn1tTIBIUWXECaVLG81531xWul4Tk");
   Parse.serverURL = 'https://parseapi.back4app.com/';
 
   // =============================================
-  // MODELOS DE DATOS PARA BACK4APP
+  // MODELOS DE DATOS MEJORADOS PARA BACK4APP
   // =============================================
 
   // Clase Producto
@@ -896,7 +896,40 @@
     }
   }
 
-  // Clase Configuracion
+  // Clase Banner para banners dinámicos - MEJORADA
+  class Banner extends Parse.Object {
+    constructor() {
+      super('Banner');
+    }
+    
+    static async obtenerBannersActivos() {
+      const query = new Parse.Query(Banner);
+      query.equalTo('activo', true);
+      query.ascending('orden');
+      try {
+        return await query.find();
+      } catch (error) {
+        console.error('Error obteniendo banners:', error);
+        return [];
+      }
+    }
+    
+    static async obtenerBannerPorTipo(tipo) {
+      const query = new Parse.Query(Banner);
+      query.equalTo('tipo', tipo);
+      query.equalTo('activo', true);
+      try {
+        const banners = await query.find();
+        console.log(`🔍 Banners encontrados para ${tipo}:`, banners.length);
+        return banners.length > 0 ? banners[0] : null;
+      } catch (error) {
+        console.error(`❌ Error obteniendo banner ${tipo}:`, error);
+        return null;
+      }
+    }
+  }
+
+  // Clase Configuracion - MEJORADA
   class Configuracion extends Parse.Object {
     constructor() {
       super('Configuracion');
@@ -936,7 +969,8 @@
             nombre: config.get('nombreTienda') || 'PuntoAlmacen',
             whatsapp: config.get('whatsapp') || '5493624840349',
             direccion: config.get('direccion') || 'Calle Falsa 123, Ciudad',
-            horarios: config.get('horarios') || 'Lunes a Viernes 9-18 hs'
+            horarios: config.get('horarios') || 'Lunes a Viernes 9-18 hs',
+            mensajeWhatsApp: config.get('mensajeWhatsApp') || 'Hola PuntoAlmacen, quiero hacer un pedido'
           };
           
           // Actualizar configuración de envío
@@ -1068,7 +1102,7 @@
       if (this.configTienda.direccion && this.configTienda.whatsapp) {
         const footerContacto = document.getElementById('footer-contacto');
         if (footerContacto) {
-          footerContacto.innerHTML = `📍 ${this.configTienda.direccion} – <a href="https://wa.me/${this.configTienda.whatsapp}">WhatsApp: ${this.configTienda.whatsapp}</a>`;
+          footerContacto.innerHTML = `📍 ${this.configTienda.direccion} – <a href="https://wa.me/${this.configTienda.whatsapp}" id="footer-whatsapp-link">WhatsApp: ${this.configTienda.whatsapp}</a>`;
         }
       }
       
@@ -1078,10 +1112,26 @@
 
     actualizarEnlacesWhatsApp() {
       const whatsapp = this.configTienda.whatsapp || '5493624840349';
-      const enlaces = document.querySelectorAll('a[href*="wa.me"]');
+      const mensaje = encodeURIComponent(this.configTienda.mensajeWhatsApp || 'Hola PuntoAlmacen, quiero hacer un pedido');
       
+      // Actualizar enlace del header
+      const btnWspHeader = document.getElementById('btn-wsp-header');
+      if (btnWspHeader) {
+        btnWspHeader.href = `https://wa.me/${whatsapp}?text=${mensaje}`;
+      }
+      
+      // Actualizar enlace del footer
+      const footerWhatsapp = document.getElementById('footer-whatsapp-link');
+      if (footerWhatsapp) {
+        footerWhatsapp.href = `https://wa.me/${whatsapp}`;
+      }
+      
+      // Actualizar otros enlaces de WhatsApp si existen
+      const enlaces = document.querySelectorAll('a[href*="wa.me"]');
       enlaces.forEach(enlace => {
-        enlace.href = enlace.href.replace(/wa\.me\/\d+/, `wa.me/${whatsapp}`);
+        if (!enlace.id) { // No actualizar los que ya tienen ID específico
+          enlace.href = enlace.href.replace(/wa\.me\/\d+/, `wa.me/${whatsapp}`);
+        }
       });
     }
 
@@ -1117,7 +1167,7 @@
       }
 
       if (subtotalElement) {
-        subtotalElement.textContent = `$${subtotal}`;
+        subtotalElement.textContent = `$${subtotal.toLocaleString()}`;
       }
 
       if (envioElement) {
@@ -1125,7 +1175,7 @@
           envioElement.textContent = 'GRATIS';
           envioElement.className = 'costo-envio-gratis';
         } else {
-          envioElement.textContent = `$${envio}`;
+          envioElement.textContent = `$${envio.toLocaleString()}`;
           envioElement.className = 'costo-envio-normal';
         }
       }
@@ -1133,7 +1183,7 @@
       if (envioGratisElement) {
         const faltante = this.getFaltanteEnvioGratis();
         if (faltante > 0 && subtotal > 0) {
-          envioGratisElement.innerHTML = `¡Faltan <span class="text-success">$${faltante}</span> para ENVÍO GRATIS!`;
+          envioGratisElement.innerHTML = `¡Faltan <span class="text-success">$${faltante.toLocaleString()}</span> para ENVÍO GRATIS!`;
           envioGratisElement.style.display = 'block';
         } else {
           envioGratisElement.style.display = 'none';
@@ -1141,7 +1191,7 @@
       }
 
       if (totalElement) {
-        totalElement.textContent = `$${totalConEnvio}`;
+        totalElement.textContent = `$${totalConEnvio.toLocaleString()}`;
       }
     }
 
@@ -1165,7 +1215,7 @@
         <div class="producto-carrito">
           <div class="producto-info">
             <h4>${item.nombre}</h4>
-            <p class="precio">$${item.precio} c/u</p>
+            <p class="precio">$${item.precio.toLocaleString()} c/u</p>
           </div>
           <div class="producto-cantidad">
             <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad - 1})">-</button>
@@ -1173,7 +1223,7 @@
             <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad + 1})">+</button>
             <button class="btn-cantidad" onclick="cart.eliminarProducto('${item.id}')" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
           </div>
-          <div class="precio">$${item.precio * item.cantidad}</div>
+          <div class="precio">$${(item.precio * item.cantidad).toLocaleString()}</div>
         </div>
       `).join('');
     }
@@ -1217,22 +1267,22 @@
       let mensaje = `¡Hola! Quiero hacer este pedido:%0A%0A`;
       
       this.carrito.forEach(item => {
-        mensaje += `➡ ${item.nombre} x${item.cantidad} - $${item.precio * item.cantidad}%0A`;
+        mensaje += `➡ ${item.nombre} x${item.cantidad} - $${(item.precio * item.cantidad).toLocaleString()}%0A`;
       });
       
-      mensaje += `%0A📦 Subtotal: $${subtotal}`;
+      mensaje += `%0A📦 Subtotal: $${subtotal.toLocaleString()}`;
       
       if (envio === 0 && subtotal > 0) {
         mensaje += `%0A🚚 Envío: GRATIS`;
       } else if (envio > 0) {
-        mensaje += `%0A🚚 Envío: $${envio}`;
+        mensaje += `%0A🚚 Envío: $${envio.toLocaleString()}`;
       }
       
-      mensaje += `%0A💵 Total: $${total}`;
+      mensaje += `%0A💵 Total: $${total.toLocaleString()}`;
       
       if (subtotal < this.MINIMO_ENVIO_GRATIS && subtotal > 0) {
         const faltante = this.getFaltanteEnvioGratis();
-        mensaje += `%0A%0A🎉 ¡Faltan $${faltante} para ENVÍO GRATIS!`;
+        mensaje += `%0A%0A🎉 ¡Faltan $${faltante.toLocaleString()} para ENVÍO GRATIS!`;
       }
       
       if (infoCliente.nombre) {
@@ -1301,12 +1351,16 @@
   }
 
   // =============================================
-  // SISTEMA PRINCIPAL DE LA TIENDA
+  // SISTEMA PRINCIPAL MEJORADO CON BANNERS DINÁMICOS
   // =============================================
 
   class PuntoAlmacenApp {
     constructor() {
       this.productos = [];
+      this.banners = {
+        oferta: null,
+        rifas: null
+      };
       this.filtroActual = 'todos';
       this.terminoBusqueda = '';
       this.cart = new CartService();
@@ -1315,12 +1369,138 @@
     async init() {
       try {
         console.log('🛍️ Inicializando PuntoAlmacen App...');
+        await this.cargarBanners();
         await this.cargarProductos();
         this.inicializarEventos();
         console.log('✅ PuntoAlmacen App inicializada correctamente');
       } catch (error) {
         console.error('❌ Error inicializando app:', error);
       }
+    }
+
+    // Método para cargar banners desde Back4app - MEJORADO
+    async cargarBanners() {
+      try {
+        console.log('🖼️ Cargando banners desde Back4app...');
+        
+        // Cargar banner de oferta
+        const bannerOferta = await Banner.obtenerBannerPorTipo('oferta');
+        if (bannerOferta && bannerOferta.get('activo') !== false) {
+          console.log('✅ Banner oferta encontrado y activo');
+          this.banners.oferta = {
+            titulo: bannerOferta.get('titulo') || 'Oferta Especial',
+            descripcion: bannerOferta.get('descripcion') || 'Descuentos hasta 50%',
+            imagen: bannerOferta.get('imagen') ? bannerOferta.get('imagen').url() : 'img/banner-oferta.jpg',
+            enlace: bannerOferta.get('enlace') || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día',
+            activo: true
+          };
+        } else {
+          console.log('ℹ️ Banner oferta no encontrado o inactivo');
+          this.banners.oferta = null;
+        }
+        
+        // Cargar banner de rifas
+        const bannerRifas = await Banner.obtenerBannerPorTipo('rifas');
+        if (bannerRifas && bannerRifas.get('activo') !== false) {
+          console.log('✅ Banner rifas encontrado y activo');
+          this.banners.rifas = {
+            titulo: bannerRifas.get('titulo') || '🎉 ¡Participa en Nuestras Rifas! 🎉',
+            descripcion: bannerRifas.get('descripcion') || 'Gana premios increíbles - ¡Es muy fácil participar!',
+            imagen: bannerRifas.get('imagen') ? bannerRifas.get('imagen').url() : 'https://via.placeholder.com/1200x300/FF6B35/ffffff?text=PARTICIPA+EN+NUESTRAS+RIFAS+ONLINE',
+            enlace: bannerRifas.get('enlace') || 'https://rifasapponline.netlify.app/',
+            activo: true
+          };
+        } else {
+          console.log('ℹ️ Banner rifas no encontrado o inactivo');
+          this.banners.rifas = null;
+        }
+        
+        this.renderizarBanners();
+        
+      } catch (error) {
+        console.error('❌ Error cargando banners:', error);
+        this.mostrarBannersPorDefecto();
+      }
+    }
+
+    // Método para renderizar banners en la UI - MEJORADO
+    renderizarBanners() {
+      // Renderizar banner de oferta
+      if (this.banners.oferta) {
+        const bannerOfertaContainer = document.getElementById('banner-oferta-container');
+        const bannerOfertaImg = document.getElementById('banner-oferta-img');
+        const btnOfertaLink = document.getElementById('btn-oferta-link');
+        
+        if (bannerOfertaContainer) {
+          bannerOfertaContainer.style.display = 'block';
+        }
+        
+        if (bannerOfertaImg) {
+          bannerOfertaImg.src = this.banners.oferta.imagen;
+          bannerOfertaImg.alt = this.banners.oferta.titulo;
+        }
+        
+        if (btnOfertaLink) {
+          btnOfertaLink.href = this.banners.oferta.enlace;
+          // Actualizar el enlace con el número de WhatsApp configurado
+          const whatsapp = this.cart.configTienda.whatsapp || '5493624840349';
+          btnOfertaLink.href = btnOfertaLink.href.replace(/wa\.me\/\d+/, `wa.me/${whatsapp}`);
+        }
+      } else {
+        this.ocultarBannerOferta();
+      }
+      
+      // Renderizar banner de rifas
+      if (this.banners.rifas) {
+        const bannerRifasContainer = document.getElementById('banner-rifas-container');
+        const bannerRifasImg = document.getElementById('banner-rifas-img');
+        const bannerRifasTitulo = document.getElementById('banner-rifas-titulo');
+        const bannerRifasDescripcion = document.getElementById('banner-rifas-descripcion');
+        const bannerRifasLink = document.getElementById('banner-rifas-link');
+        
+        if (bannerRifasContainer) {
+          bannerRifasContainer.style.display = 'block';
+        }
+        
+        if (bannerRifasImg) {
+          bannerRifasImg.src = this.banners.rifas.imagen;
+          bannerRifasImg.alt = this.banners.rifas.titulo;
+        }
+        
+        if (bannerRifasTitulo) {
+          bannerRifasTitulo.textContent = this.banners.rifas.titulo;
+        }
+        
+        if (bannerRifasDescripcion) {
+          bannerRifasDescripcion.textContent = this.banners.rifas.descripcion;
+        }
+        
+        if (bannerRifasLink) {
+          bannerRifasLink.href = this.banners.rifas.enlace;
+        }
+      } else {
+        this.ocultarBannerRifas();
+      }
+    }
+
+    // Métodos auxiliares para manejar banners
+    ocultarBannerOferta() {
+      const bannerOfertaContainer = document.getElementById('banner-oferta-container');
+      if (bannerOfertaContainer) {
+        bannerOfertaContainer.style.display = 'none';
+      }
+    }
+    
+    ocultarBannerRifas() {
+      const bannerRifasContainer = document.getElementById('banner-rifas-container');
+      if (bannerRifasContainer) {
+        bannerRifasContainer.style.display = 'none';
+      }
+    }
+    
+    mostrarBannersPorDefecto() {
+      console.log('🔄 Usando banners por defecto');
+      // Los banners por defecto ya están en el HTML
     }
 
     async cargarProductos() {
@@ -1343,6 +1523,7 @@
             garantia: producto.get('garantia') || null,
             activo: producto.get('activo') !== false
           }));
+          console.log(`✅ ${this.productos.length} productos cargados desde Back4app`);
         } else {
           // Usar productos por defecto si no hay en Back4app
           this.productos = [
@@ -1350,13 +1531,14 @@
             { id: '2', nombre: "Fideos Tallarín 500g", precio: 320, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Fideos", activo: true },
             { id: '3', nombre: "Aceite de Girasol 1L", precio: 780, categoria: "almacen", imagen: "https://via.placeholder.com/300x250/25D366/ffffff?text=Aceite", destacado: true, activo: true }
           ];
+          console.log('ℹ️ Usando productos por defecto');
         }
 
         this.renderizarProductos();
         this.mostrarLoading(false);
         
       } catch (error) {
-        console.error('Error cargando productos:', error);
+        console.error('❌ Error cargando productos:', error);
         this.mostrarLoading(false);
         this.mostrarError('Error cargando productos. Intenta recargar la página.');
       }
@@ -1446,7 +1628,7 @@
             `<p><small>Talles: ${producto.talles.join(', ')}</small></p>` : ''}
           ${producto.garantia ? `<p><small>🛡️ Garantía: ${producto.garantia}</small></p>` : ''}
           ${producto.descripcion ? `<p><small>${producto.descripcion}</small></p>` : ''}
-          <div class="precio">$${producto.precio}</div>
+          <div class="precio">$${producto.precio.toLocaleString()}</div>
           <button class="btn-agregar" data-id="${producto.id}">
             🛒 Agregar al carrito
           </button>
