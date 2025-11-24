@@ -823,7 +823,8 @@
         📱 Enviar por WhatsApp
       </button>
       
-      <button class="btn-enviar-pedido" onclick="cart.limpiarCarrito()" style="background: #dc3545; margin-top: 10px;">
+      <!-- 🔥 CORRECCIÓN: Cambiado a función global -->
+      <button class="btn-enviar-pedido" onclick="vaciarCarrito()" style="background: #dc3545; margin-top: 10px;">
         🗑️ Vaciar Carrito
       </button>
     </div>
@@ -1195,6 +1196,7 @@
       }
     }
 
+    // 🔥 CORRECCIÓN: Función actualizada con funciones globales
     actualizarListaCarrito() {
       const listaCarrito = document.getElementById('listaCarrito');
       if (!listaCarrito) return;
@@ -1211,6 +1213,7 @@
         return;
       }
 
+      // 🔥 CORRECCIÓN: Usar las funciones globales
       listaCarrito.innerHTML = this.carrito.map(item => `
         <div class="producto-carrito">
           <div class="producto-info">
@@ -1218,10 +1221,10 @@
             <p class="precio">$${item.precio.toLocaleString()} c/u</p>
           </div>
           <div class="producto-cantidad">
-            <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad - 1})">-</button>
+            <button class="btn-cantidad" onclick="restarProducto('${item.id}')">-</button>
             <span style="min-width: 30px; text-align: center;">${item.cantidad}</span>
-            <button class="btn-cantidad" onclick="cart.actualizarCantidad('${item.id}', ${item.cantidad + 1})">+</button>
-            <button class="btn-cantidad" onclick="cart.eliminarProducto('${item.id}')" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
+            <button class="btn-cantidad" onclick="sumarProducto('${item.id}')">+</button>
+            <button class="btn-cantidad" onclick="eliminarProducto('${item.id}')" style="margin-left: 10px; background: #ff4444; color: white;">×</button>
           </div>
           <div class="precio">$${(item.precio * item.cantidad).toLocaleString()}</div>
         </div>
@@ -1773,6 +1776,44 @@
   function abrirCarrito() {
     if (window.app && window.app.cart) {
       window.app.cart.abrirCarrito();
+    }
+  }
+
+  // =============================================
+  // 🔥 SOLUCIÓN: FUNCIONES GLOBALES PARA EL CARRITO
+  // =============================================
+
+  // Función para sumar cantidad
+  function sumarProducto(id) {
+    if (window.app && window.app.cart) {
+      const item = window.app.cart.carrito.find(item => item.id === id);
+      if (item) {
+        window.app.cart.actualizarCantidad(id, item.cantidad + 1);
+      }
+    }
+  }
+
+  // Función para restar cantidad  
+  function restarProducto(id) {
+    if (window.app && window.app.cart) {
+      const item = window.app.cart.carrito.find(item => item.id === id);
+      if (item) {
+        window.app.cart.actualizarCantidad(id, item.cantidad - 1);
+      }
+    }
+  }
+
+  // Función para eliminar producto
+  function eliminarProducto(id) {
+    if (window.app && window.app.cart) {
+      window.app.cart.eliminarProducto(id);
+    }
+  }
+
+  // Función para vaciar carrito
+  function vaciarCarrito() {
+    if (window.app && window.app.cart) {
+      window.app.cart.limpiarCarrito();
     }
   }
 
