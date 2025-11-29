@@ -698,7 +698,7 @@
             
             <div class="form-group">
               <label for="banner-oferta-enlace">Enlace WhatsApp</label>
-              <input type="text" id="banner-oferta-enlace" placeholder="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día">
+              <input type="text" id="banner-oferta-enlace" placeholder="https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20d%C3%ADa">
             </div>
             
             <div class="form-group">
@@ -1013,6 +1013,19 @@
           throw error;
         }
       }
+      
+      static async actualizarPrecio(id, nuevoPrecio) {
+        try {
+          const query = new Parse.Query(Producto);
+          const producto = await query.get(id);
+          producto.set('precio', parseFloat(nuevoPrecio));
+          await producto.save();
+          return true;
+        } catch (error) {
+          console.error('Error actualizando precio del producto:', error);
+          throw error;
+        }
+      }
     }
 
     // Clase Pedido
@@ -1160,7 +1173,7 @@
           console.log('✅ Banner oferta encontrado:', bannerOferta);
           document.getElementById('banner-oferta-titulo').value = bannerOferta.get('titulo') || 'Oferta Especial';
           document.getElementById('banner-oferta-descripcion').value = bannerOferta.get('descripcion') || 'Descuentos hasta 50%';
-          document.getElementById('banner-oferta-enlace').value = bannerOferta.get('enlace') || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+          document.getElementById('banner-oferta-enlace').value = bannerOferta.get('enlace') || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20d%C3%ADa';
           document.getElementById('banner-oferta-activo').checked = bannerOferta.get('activo') !== false;
           
           const imagenUrl = bannerOferta.get('imagen');
@@ -1281,7 +1294,7 @@
       try {
         const titulo = document.getElementById('banner-oferta-titulo').value || 'Oferta Especial';
         const descripcion = document.getElementById('banner-oferta-descripcion').value || 'Descuentos hasta 50%';
-        const enlace = document.getElementById('banner-oferta-enlace').value || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+        const enlace = document.getElementById('banner-oferta-enlace').value || 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20d%C3%ADa';
         const imagenUrl = document.getElementById('banner-oferta-imagen-url').value || 'img/banner-oferta.jpg';
         const activo = document.getElementById('banner-oferta-activo').checked;
         
@@ -1358,7 +1371,7 @@
         try {
           document.getElementById('banner-oferta-titulo').value = 'Oferta Especial';
           document.getElementById('banner-oferta-descripcion').value = 'Descuentos hasta 50%';
-          document.getElementById('banner-oferta-enlace').value = 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20día';
+          document.getElementById('banner-oferta-enlace').value = 'https://wa.me/5493624840349?text=Quiero%20la%20oferta%20del%20d%C3%ADa';
           document.getElementById('banner-oferta-activo').checked = true;
           document.getElementById('banner-oferta-imagen-url').value = 'img/banner-oferta.jpg';
           
@@ -1566,6 +1579,7 @@
               <td>${producto.get('categoria')}</td>
               <td>${producto.get('destacado') ? '⭐' : ''}</td>
               <td>
+                <button class="btn btn-sm btn-warning" onclick="editarPrecioProducto('${producto.id}', '${producto.get('nombre')}', ${producto.get('precio')})">Editar Precio</button>
                 <button class="btn btn-sm btn-danger" onclick="eliminarProducto('${producto.id}')">Eliminar</button>
               </td>
             </tr>
@@ -1636,6 +1650,27 @@
           console.error('Error eliminando producto:', error);
           mostrarNotificacion('❌ Error al eliminar el producto', 'error');
         }
+      }
+    }
+
+    // Editar precio del producto - NUEVA FUNCIÓN
+    async function editarPrecioProducto(id, nombre, precioActual) {
+      const nuevoPrecio = prompt(`Editar precio de "${nombre}"`, precioActual);
+      
+      if (nuevoPrecio === null) return; // Usuario canceló
+      
+      if (isNaN(nuevoPrecio) || nuevoPrecio <= 0) {
+        mostrarNotificacion('❌ Precio inválido. Debe ser un número mayor que 0.', 'error');
+        return;
+      }
+      
+      try {
+        await Producto.actualizarPrecio(id, parseFloat(nuevoPrecio));
+        await cargarProductos();
+        mostrarNotificacion('✅ Precio actualizado correctamente');
+      } catch (error) {
+        console.error('Error actualizando precio:', error);
+        mostrarNotificacion('❌ Error al actualizar el precio', 'error');
       }
     }
 
