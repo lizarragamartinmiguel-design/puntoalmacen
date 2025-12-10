@@ -785,7 +785,7 @@
       <div class="sin-productos">No hay productos en el carrito</div>
     </div>
     
-    <!-- 🔥 NUEVO: Sección de totales con envío -->
+    <!-- Sección de totales con envío -->
     <div class="cart-totals" id="cartTotals" style="display: none;">
       <div class="d-flex justify-content-between mb-2">
         <span>Subtotal:</span>
@@ -805,7 +805,6 @@
         📱 Enviar por WhatsApp
       </button>
       
-      <!-- 🔥 CORRECCIÓN: Cambiado a función global -->
       <button class="btn-enviar-pedido" onclick="vaciarCarrito()" style="background: #dc3545; margin-top: 10px;">
         🗑️ Vaciar Carrito
       </button>
@@ -813,7 +812,7 @@
   </div>
 </div>
 
-<!-- 🔥 NUEVO: Modal de datos del cliente -->
+<!-- Modal de datos del cliente -->
 <div class="modal-cliente" id="modalInfoCliente">
   <div class="modal-cliente-contenido">
     <button class="modal-cerrar" onclick="cerrarModal('modalInfoCliente')">&times;</button>
@@ -834,7 +833,7 @@
       <textarea id="clienteDireccion" placeholder="Calle, número, piso, departamento, ciudad..." required></textarea>
     </div>
     
-    <button class="btn-confirmar" onclick="cart.confirmarPedidoConCliente()">
+    <button class="btn-confirmar" onclick="confirmarPedido()">
       ✅ Confirmar y Enviar por WhatsApp
     </button>
   </div>
@@ -1178,7 +1177,6 @@
       }
     }
 
-    // 🔥 CORRECCIÓN: Función actualizada con funciones globales
     actualizarListaCarrito() {
       const listaCarrito = document.getElementById('listaCarrito');
       if (!listaCarrito) return;
@@ -1195,7 +1193,6 @@
         return;
       }
 
-      // 🔥 CORRECCIÓN: Usar las funciones globales
       listaCarrito.innerHTML = this.carrito.map(item => `
         <div class="producto-carrito">
           <div class="producto-info">
@@ -1287,15 +1284,26 @@
       return mensaje;
     }
 
+    abrirCarrito() {
+      const modal = document.getElementById('modalCarrito');
+      if (modal) {
+        modal.style.display = 'flex';
+        this.actualizarUI();
+      }
+    }
+
     enviarPorWhatsApp() {
+      // Verificar si hay productos en el carrito
+      if (this.carrito.length === 0) {
+        this.mostrarNotificacion('❌ El carrito está vacío');
+        return;
+      }
+      
+      // Mostrar el modal de datos del cliente
       const modalCliente = document.getElementById('modalInfoCliente');
       if (modalCliente) {
         modalCliente.style.display = 'flex';
-      } else {
-        const mensaje = this.generarMensajeWhatsApp();
-        const telefono = this.configTienda.whatsapp || '5493624840349';
-        const whatsappURL = `https://wa.me/${telefono}?text=${mensaje}`;
-        window.open(whatsappURL, '_blank');
+        cerrarModal('modalCarrito'); // Cerrar el modal del carrito
       }
     }
 
@@ -1304,34 +1312,48 @@
       const telefono = document.getElementById('clienteTelefono')?.value || '';
       const direccion = document.getElementById('clienteDireccion')?.value || '';
       
-      if (!nombre || !telefono || !direccion) {
-        this.mostrarNotificacion('❌ Por favor completa todos los campos');
+      // Validar campos
+      if (!nombre.trim()) {
+        this.mostrarNotificacion('❌ Por favor ingresa tu nombre');
+        document.getElementById('clienteNombre').focus();
         return;
       }
       
-      const infoCliente = { nombre, telefono, direccion };
+      if (!telefono.trim()) {
+        this.mostrarNotificacion('❌ Por favor ingresa tu teléfono');
+        document.getElementById('clienteTelefono').focus();
+        return;
+      }
+      
+      if (!direccion.trim()) {
+        this.mostrarNotificacion('❌ Por favor ingresa tu dirección');
+        document.getElementById('clienteDireccion').focus();
+        return;
+      }
+      
+      // Crear objeto con datos del cliente
+      const infoCliente = { 
+        nombre: nombre.trim(), 
+        telefono: telefono.trim(), 
+        direccion: direccion.trim() 
+      };
+      
+      // Generar mensaje de WhatsApp con los datos del cliente
       const mensaje = this.generarMensajeWhatsApp(infoCliente);
       const telefonoWhatsApp = this.configTienda.whatsapp || '5493624840349';
       const whatsappURL = `https://wa.me/${telefonoWhatsApp}?text=${mensaje}`;
       
-      this.cerrarModal('modalInfoCliente');
+      // Cerrar modal
+      cerrarModal('modalInfoCliente');
+      
+      // Abrir WhatsApp en nueva pestaña
       window.open(whatsappURL, '_blank');
+      
+      // Limpiar carrito después de enviar
       this.limpiarCarrito();
-    }
-
-    cerrarModal(modalId) {
-      const modal = document.getElementById(modalId);
-      if (modal) {
-        modal.style.display = 'none';
-      }
-    }
-
-    abrirCarrito() {
-      const modal = document.getElementById('modalCarrito');
-      if (modal) {
-        modal.style.display = 'flex';
-        this.actualizarUI();
-      }
+      
+      // Mostrar confirmación
+      this.mostrarNotificacion('✅ Pedido enviado por WhatsApp');
     }
   }
 
@@ -1672,7 +1694,7 @@
       }
       
       if (cerrarModalBtn) {
-        cerrarModalBtn.addEventListener('click', () => this.cart.cerrarModal('modalCarrito'));
+        cerrarModalBtn.addEventListener('click', () => cerrarModal('modalCarrito'));
       }
       
       if (btnEnviarWhatsApp) {
@@ -1687,7 +1709,7 @@
         if (modal) {
           modal.addEventListener('click', (e) => {
             if (e.target === modal) {
-              this.cart.cerrarModal(modal.id);
+              cerrarModal(modal.id);
             }
           });
         }
@@ -1743,66 +1765,114 @@
   }
 
   // =============================================
-  // INICIALIZACIÓN GLOBAL
+  // FUNCIONES GLOBALES CORREGIDAS
   // =============================================
 
+  // Variables globales
+  let app = null;
+  let cart = null;
+
   // Función global para cerrar modales
-  function cerrarModal(modalId) {
+  window.cerrarModal = function(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) {
       modal.style.display = 'none';
     }
   }
 
-  // Función global para abrir carrito
-  function abrirCarrito() {
-    if (window.app && window.app.cart) {
-      window.app.cart.abrirCarrito();
-    }
-  }
-
-  // =============================================
-  // 🔥 SOLUCIÓN: FUNCIONES GLOBALES PARA EL CARRITO
-  // =============================================
-
   // Función para sumar cantidad
-  function sumarProducto(id) {
-    if (window.app && window.app.cart) {
-      const item = window.app.cart.carrito.find(item => item.id === id);
+  window.sumarProducto = function(id) {
+    if (cart) {
+      const item = cart.carrito.find(item => item.id === id);
       if (item) {
-        window.app.cart.actualizarCantidad(id, item.cantidad + 1);
+        cart.actualizarCantidad(id, item.cantidad + 1);
       }
     }
   }
 
   // Función para restar cantidad  
-  function restarProducto(id) {
-    if (window.app && window.app.cart) {
-      const item = window.app.cart.carrito.find(item => item.id === id);
+  window.restarProducto = function(id) {
+    if (cart) {
+      const item = cart.carrito.find(item => item.id === id);
       if (item) {
-        window.app.cart.actualizarCantidad(id, item.cantidad - 1);
+        cart.actualizarCantidad(id, item.cantidad - 1);
       }
     }
   }
 
   // Función para eliminar producto
-  function eliminarProducto(id) {
-    if (window.app && window.app.cart) {
-      window.app.cart.eliminarProducto(id);
+  window.eliminarProducto = function(id) {
+    if (cart) {
+      cart.eliminarProducto(id);
     }
   }
 
   // Función para vaciar carrito
-  function vaciarCarrito() {
-    if (window.app && window.app.cart) {
-      window.app.cart.limpiarCarrito();
+  window.vaciarCarrito = function() {
+    if (cart) {
+      cart.limpiarCarrito();
+      cerrarModal('modalCarrito');
     }
   }
 
-  // Inicializar la aplicación cuando el DOM esté listo
+  // Función para confirmar pedido
+  window.confirmarPedido = function() {
+    if (cart) {
+      cart.confirmarPedidoConCliente();
+    }
+  }
+
+  // =============================================
+  // INICIALIZACIÓN DE LA APLICACIÓN
+  // =============================================
+
+  // Inicializar cuando el DOM esté listo
   document.addEventListener('DOMContentLoaded', async () => {
-    window.app = new PuntoAlmacenApp();
-    await window.app.init();
+    try {
+      // Crear instancia de la aplicación
+      app = new PuntoAlmacenApp();
+      
+      // Guardar referencia al carrito globalmente
+      cart = app.cart;
+      
+      // Hacer accesibles globalmente
+      window.app = app;
+      window.cart = cart;
+      
+      // Inicializar la aplicación
+      await app.init();
+      
+      console.log('✅ Aplicación inicializada correctamente');
+      
+    } catch (error) {
+      console.error('❌ Error al inicializar la aplicación:', error);
+      alert('Error al cargar la tienda. Por favor, recarga la página.');
+    }
+  });
+
+  // =============================================
+  // MEJORAS ADICIONALES
+  // =============================================
+
+  // Permitir cerrar modales con la tecla ESC
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      cerrarModal('modalCarrito');
+      cerrarModal('modalInfoCliente');
+    }
+  });
+
+  // Mejorar validación del formulario
+  document.addEventListener('DOMContentLoaded', function() {
+    const formInputs = document.querySelectorAll('#modalInfoCliente input, #modalInfoCliente textarea');
+    formInputs.forEach(input => {
+      input.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          confirmarPedido();
+        }
+      });
+    });
   });
 
 </script>
