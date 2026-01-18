@@ -718,7 +718,7 @@
 <!-- HEADER CON LOGO -->
 <header class="header">
   <div class="logo-container">
-    <img src="img/logo.jpg.jpeg" alt="PuntoAlmacen - Tienda por WhatsApp" class="logo">
+    <img src="img/logo.jpg" alt="PuntoAlmacen - Tienda por WhatsApp" class="logo">
     <div>
       <div class="logo-text">PuntoAlmacen</div>
       <div class="logo-subtitle">Tienda por WhatsApp</div>
@@ -736,13 +736,14 @@
   <!-- Barra de búsqueda -->
   <input type="text" class="busqueda" placeholder="🔍 Buscar productos..." id="busqueda">
   
-  <!-- Filtros por categoría -->
+  <!-- Filtros por categoría - DESCATABLES AGREGADO -->
   <div class="filtros">
     <button class="btn-filtro active" data-categoria="todos">Todos los productos</button>
     <button class="btn-filtro" data-categoria="almacen">Almacén</button>
     <button class="btn-filtro" data-categoria="indumentaria">Indumentaria</button>
     <button class="btn-filtro" data-categoria="electro">Electro</button>
     <button class="btn-filtro" data-categoria="libreria">Librería</button>
+    <button class="btn-filtro" data-categoria="descartables">Descartables</button>
   </div>
 
   <h2 class="titulo-seccion">Almacén</h2>
@@ -763,6 +764,12 @@
   <h2 class="titulo-seccion">Librería</h2>
   <div class="grilla" id="libreria">
     <div class="loading">Cargando productos de librería...</div>
+  </div>
+
+  <!-- NUEVA SECCIÓN DESCATABLES AGREGADA -->
+  <h2 class="titulo-seccion">Descartables</h2>
+  <div class="grilla" id="descartables">
+    <div class="loading">Cargando productos descartables...</div>
   </div>
 
 </main>
@@ -842,7 +849,7 @@
 <!-- FOOTER -->
 <footer>
   <p id="footer-info">© 2025 PuntoAlmacen – Horarios: Lunes a Viernes 9-18 hs</p>
-  <p id="footer-contacto">📍 Calle Falsa 123, Ciudad – <a href="https://wa.me/5493624840349" id="footer-whatsapp-link">WhatsApp: +54 9 3624 840-349</a></p>
+  <p id="footer-contacto">📍 Calle Falsa 123, Ciudad – <a href="https://wa.me/5493624840349" id="footer-wasapp-link">WhatsApp: +54 9 3624 840-349</a></p>
   <p><a href="admin.html" style="color: #ccc; font-size: 12px;">Panel de Administración</a></p>
 </footer>
 
@@ -1084,7 +1091,7 @@
       if (this.configTienda.direccion && this.configTienda.whatsapp) {
         const footerContacto = document.getElementById('footer-contacto');
         if (footerContacto) {
-          footerContacto.innerHTML = `📍 ${this.configTienda.direccion} – <a href="https://wa.me/${this.configTienda.whatsapp}" id="footer-whatsapp-link">WhatsApp: ${this.configTienda.whatsapp}</a>`;
+          footerContacto.innerHTML = `📍 ${this.configTienda.direccion} – <a href="https://wa.me/${this.configTienda.whatsapp}" id="footer-wasapp-link">WhatsApp: ${this.configTienda.whatsapp}</a>`;
         }
       }
       
@@ -1103,7 +1110,7 @@
       }
       
       // Actualizar enlace del footer
-      const footerWhatsapp = document.getElementById('footer-whatsapp-link');
+      const footerWhatsapp = document.getElementById('footer-wasapp-link');
       if (footerWhatsapp) {
         footerWhatsapp.href = `https://wa.me/${whatsapp}`;
       }
@@ -1556,7 +1563,8 @@
         almacen: document.getElementById('almacen'),
         indumentaria: document.getElementById('indumentaria'),
         electro: document.getElementById('electro'),
-        libreria: document.getElementById('libreria')
+        libreria: document.getElementById('libreria'),
+        descartables: document.getElementById('descartables') // NUEVA SECCIÓN AGREGADA
       };
 
       // Limpiar secciones
